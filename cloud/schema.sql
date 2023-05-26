@@ -1,0 +1,13 @@
+CREATE DATABASE cloud;
+
+USE cloud;
+
+CREATE TABLE
+  files (
+    id INT NOT NULL AUTO_INCREMENT,
+    uid INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    date DATE DEFAULT CURRENT_DATE,
+    PRIMARY KEY (id)
+  );
