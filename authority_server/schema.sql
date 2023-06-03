@@ -11,3 +11,5 @@ CREATE TABLE
     UNIQUE (username),
     PRIMARY KEY (id)
   );
+
+INSERT INTO users(username, password, role) VALUES ("admin", "password", "admin") -- admin account
