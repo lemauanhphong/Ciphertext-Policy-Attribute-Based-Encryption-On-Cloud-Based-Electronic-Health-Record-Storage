@@ -1,10 +1,11 @@
-from flask import Flask, request, Response, session, redirect
+from flask import Flask, request, Response, session
 from flask_session import Session
 import werkzeug
 import hmac
 import json
 import hashlib
 from database import db
+from utils import gen_token, gen_encrypt_key, gen_decrypt_key
 
 app = Flask(__name__)
 
@@ -30,12 +31,12 @@ def login():
     password = request.form['password']
     hashed_password = hmac.new(bytes(SECRET, 'utf-8'), msg=bytes(password, 'utf-8')
                             , digestmod=hashlib.sha256).hexdigest()
-    user = db.query("SELECT username, role, permission FROM users WHERE username = %s AND password = %s", (username, hashed_password))
+    user = db.query("SELECT id, username, role, permission FROM users WHERE username = %s AND password = %s", (username, hashed_password))
 
     if (len(user) != 1):
         resp = Response(response="Wrong username or password", status=401)
     else:
-        session["data"] = {"username": user[0][0], "role": user[0][1], "permission": user[0][2]}
+        session["data"] = {"id": user[0][0], "username": user[0][1], "role": user[0][2], "permission": user[0][3]}
         resp = Response(status=200)
     return resp
     
@@ -70,10 +71,10 @@ def parameters():
     
     # TODO: gen param
     dict_param = {}
-    dict_param["token"] = ""
-    dict_param["decrypt_key"] = ""
+    dict_param["token"] = gen_token()
+    dict_param["decrypt_key"] = gen_decrypt_key()
     if (session["data"]["permission"]):
-        dict_param["encrypt_key"] = ""
+        dict_param["encrypt_key"] = gen_encrypt_key()
     
     return Response(200, response=json.dumps(dict_param), mimetype="application/json")
 
