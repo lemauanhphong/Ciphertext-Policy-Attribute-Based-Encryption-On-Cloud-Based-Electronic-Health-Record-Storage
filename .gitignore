@@ -1,3 +1,5 @@
 .vsvode
 __pycache__
 flask_session
+.project
+.keys
