@@ -8,8 +8,12 @@ CREATE TABLE
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(255) NOT NULL,
+    permission INT DEFAULT 0 NOT NULL,
     UNIQUE (username),
     PRIMARY KEY (id)
   );
 
-INSERT INTO users(username, password, role) VALUES ("admin", "password", "admin") -- admin account
+INSERT INTO
+  users (username, password, role)
+VALUES
+  ("admin", "password", "admin") -- admin account
