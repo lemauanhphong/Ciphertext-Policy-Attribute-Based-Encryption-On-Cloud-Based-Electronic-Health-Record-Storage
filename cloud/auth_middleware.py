@@ -9,14 +9,16 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
         if "Authorization" in request.headers:
-            token = request.headers["Authorization"].split(" ")[1]
-        if not token:
+            token = request.headers["Authorization"].split(" ")
+            
+        if not token or len(token) != 2:
             return {
                 "message": "Authentication Token is missing!",
                 "data": None,
                 "error": "Unauthorized"
             }, 401
         
+        token = token[1]
         try:
             user = jwt.decode(token, JWT_PUBKEY, algorithms=["EdDSA"])
         except Exception as e:
