@@ -11,7 +11,7 @@ services:
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       static-network:
-        ipv4_address: 172.23.0.2
+        ipv4_address: 172.22.3.2
 
 # volumes:
 #   datadir:
@@ -20,4 +20,4 @@ networks:
   static-network:
     ipam:
       config:
-        - subnet: 172.23.0.0/16
+        - subnet: 172.22.3.0/24

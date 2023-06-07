@@ -1,9 +1,8 @@
 from functools import wraps
 import jwt
 from flask import request
+from config import JWT_PUBKEY
 
-with open("ec25519pubkey.pem", "rb") as f:
-    pubkey = f.read()
 
 def token_required(f):
     @wraps(f)
@@ -19,7 +18,7 @@ def token_required(f):
             }, 401
         
         try:
-            user = jwt.decode(token, pubkey, algorithms=["EdDSA"])
+            user = jwt.decode(token, JWT_PUBKEY, algorithms=["EdDSA"])
         except Exception as e:
             return {
                 "message": "Something went wrong",
