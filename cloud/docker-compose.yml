@@ -5,13 +5,13 @@ services:
       MARIADB_ROOT_PASSWORD: 123456
       MARIADB_DATABSE: cloud 
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       # - datadir:/var/lib/mysql
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       static-network:
-        ipv4_address: 172.22.0.2
+        ipv4_address: 172.23.0.2
 
 # volumes:
 #   datadir:
@@ -20,4 +20,4 @@ networks:
   static-network:
     ipam:
       config:
-        - subnet: 172.22.0.0/16
+        - subnet: 172.23.0.0/16

@@ -1,4 +1,4 @@
-from flask import Flask, Response, request
+from flask import Flask, request
 from database import db
 import werkzeug
 from auth_middleware import token_required
@@ -16,7 +16,7 @@ TABLE_LIST = [
 @app.errorhandler(werkzeug.exceptions.BadRequest)
 def handle_bad_request(e):
     print(e)
-    return Response(status=400)
+    return "", 400
 
 @app.route('/', methods = ['GET'])
 def hello():
@@ -27,7 +27,7 @@ def hello():
 def pull(user):
     table = request.form['table']
     if (table not in TABLE_LIST):
-        return Response(status=400)
+        return "", 400
     
     # TODO: only test
     l = db.query(request.form['sql'])
@@ -38,17 +38,17 @@ def pull(user):
 @token_required
 def get(user):
     if (user["permission"] != 1):
-        return Response(status=403)
+        return "", 403
     
     table = request.form['table']
     if (table not in TABLE_LIST):
-        return Response(status=400)
+        return "", 400
 
     # TODO: only test
     db.update(request.form['sql'])
-    return Response(status=200)
+    return "", 200
 
 if __name__ == '__main__':
     if not os.path.exists('data'):
         os.makedirs('data')
-    app.run(port=2808, debug=True)
+    app.run(port=2809, debug=True)
