@@ -1,0 +1,54 @@
+from flask import Flask, Response, request
+from database import db
+import werkzeug
+from auth_middleware import token_required
+import os
+
+app = Flask(__name__)
+
+TABLE_LIST = [
+    "health_records",
+    "person_profiles",
+    "research",
+    "financials"
+]
+
+@app.errorhandler(werkzeug.exceptions.BadRequest)
+def handle_bad_request(e):
+    print(e)
+    return Response(status=400)
+
+@app.route('/', methods = ['GET'])
+def hello():
+    return "Hello world"
+
+@app.route('/pull', methods = ['POST'])
+@token_required
+def pull(user):
+    table = request.form['table']
+    if (table not in TABLE_LIST):
+        return Response(status=400)
+    
+    # TODO: only test
+    l = db.query(request.form['sql'])
+    return l
+        
+    
+@app.route('/push', methods = ['POST'])
+@token_required
+def get(user):
+    if (user["permission"] != 1):
+        return Response(status=403)
+    
+    table = request.form['table']
+    if (table not in TABLE_LIST):
+        return Response(status=400)
+
+    # TODO: only test
+    db.update(request.form['sql'])
+    return Response(status=200)
+
+if __name__ == '__main__':
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    app.run(port=2808, debug=True)

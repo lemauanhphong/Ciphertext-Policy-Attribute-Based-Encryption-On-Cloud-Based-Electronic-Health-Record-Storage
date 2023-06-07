@@ -1,3 +1,4 @@
+from config import PASSWORD_HMAC_KEY, COOKIE_KEY
 from flask import Flask, request, Response, session
 from flask_session import Session
 import werkzeug
@@ -6,15 +7,15 @@ import json
 import hashlib
 from database import db
 from utils import gen_token, gen_encrypt_key, gen_decrypt_key
+import datetime
+import timezone
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = "aaa" # for cookie
+app.config['SECRET_KEY'] = COOKIE_KEY
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-
-SECRET = "secret_one" # for password hashing
 
 @app.errorhandler(werkzeug.exceptions.BadRequest)
 def handle_bad_request(e):
@@ -29,14 +30,14 @@ def hello():
 def login():
     username = request.form['username']
     password = request.form['password']
-    hashed_password = hmac.new(bytes(SECRET, 'utf-8'), msg=bytes(password, 'utf-8')
+    hashed_password = hmac.new(bytes(PASSWORD_HMAC_KEY, 'utf-8'), msg=bytes(password, 'utf-8')
                             , digestmod=hashlib.sha256).hexdigest()
     user = db.query("SELECT id, username, role, permission FROM users WHERE username = %s AND password = %s", (username, hashed_password))
 
     if (len(user) != 1):
         resp = Response(response="Wrong username or password", status=401)
     else:
-        session["data"] = {"id": user[0][0], "username": user[0][1], "role": user[0][2], "permission": user[0][3]}
+        session["data"] = {"id": user[0]["id"], "username": user[0]["username"], "role": user[0]["role"], "permission": user[0]["permisison"]}
         resp = Response(status=200)
     return resp
     
@@ -54,7 +55,7 @@ def register():
 
     user = db.query("SELECT COUNT(1) FROM users WHERE username = %s", (username,))
 
-    hashed_password = hmac.new(bytes(SECRET, 'utf-8'), msg=bytes(password, 'utf-8')
+    hashed_password = hmac.new(bytes(PASSWORD_HMAC_KEY, 'utf-8'), msg=bytes(password, 'utf-8')
                             , digestmod=hashlib.sha256).hexdigest()
 
     if (user[0][0] != 0):
@@ -71,7 +72,7 @@ def parameters():
     
     # TODO: gen param
     dict_param = {}
-    dict_param["token"] = gen_token()
+    dict_param["token"] = gen_token({"permission": session["data"]["permission"], "username": session["data"]["username"], "exp": datetime.now(tz=timezone.utc) + 3600})
     dict_param["decrypt_key"] = gen_decrypt_key()
     if (session["data"]["permission"]):
         dict_param["encrypt_key"] = gen_encrypt_key()

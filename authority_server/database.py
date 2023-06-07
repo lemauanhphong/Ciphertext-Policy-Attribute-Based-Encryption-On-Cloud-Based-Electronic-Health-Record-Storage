@@ -21,7 +21,7 @@ class Database:
                 port=3306,
                 database="authority_server",
             )
-            self.cursor = self.conn.cursor()
+            self.cursor = self.conn.cursor(dictionary=True)
         except mariadb.Error as e:
             print(f"Error connecting to MariaDB Platform: {e}")
             sys.exit(1)
