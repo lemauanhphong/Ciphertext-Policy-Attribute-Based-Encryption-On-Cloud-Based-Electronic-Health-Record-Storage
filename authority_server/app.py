@@ -57,7 +57,7 @@ def register():
     if not request.cookies.get("session") or not session["data"]:
         return "", 401
 
-    if "admin" not in session["data"]["attributes"]["roles"]:
+    if "admin" not in session["data"]["attributes"]["ROLES"]:
         return "", 403
 
     username = request.json["username"]
