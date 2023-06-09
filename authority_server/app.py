@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import hmac
+import json
 
 from config import COOKIE_KEY, PASSWORD_HMAC_KEY
 from database import db
@@ -45,7 +46,7 @@ def login():
     if len(user) != 1:
         return "Wrong username or password", 401
 
-    user[0]["attributes"] = user[0]["attributes"].split(",")
+    user[0]["attributes"] = json.loads(user[0]["attributes"])
     session["data"] = user[0]
 
     return "", 200
@@ -56,12 +57,12 @@ def register():
     if not request.cookies.get("session") or not session["data"]:
         return "", 401
 
-    if "admin" not in session["data"]["attributes"]:
+    if "admin" not in session["data"]["attributes"]["roles"]:
         return "", 403
 
     username = request.form["username"]
     password = request.form["password"]
-    attributes = request.form["attributes"]
+    roles = request.form["roles"].replace(" ", "").split(",")
 
     user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
 
@@ -73,7 +74,8 @@ def register():
         return "Username already exists", 409
 
     db.update(
-        "INSERT INTO users(username, password, attributes) VALUES (%s, %s, %s)", (username, hashed_password, attributes)
+        "INSERT INTO users(username, password, attributes) VALUES (%s, %s, %s)",
+        (username, hashed_password, json.dumps({"roles": roles})),
     )
     return "", 200
 
@@ -92,7 +94,7 @@ def parameters():
             }
         ),
         "public_key": abe.get_public_key().decode(),
-        "secret_key": abe.gen_secret_key(session["data"]["attributes"]).decode(),
+        "secret_key": abe.gen_secret_key(session["data"]["attributes"]["roles"]).decode(),
     }
 
     return dict_param, 200, {"Content-Type": "application/json"}
