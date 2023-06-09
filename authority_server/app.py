@@ -56,6 +56,9 @@ def register():
     if not request.cookies.get("session") or not session["data"]:
         return "", 401
 
+    if "admin" not in session["data"]["attributes"]:
+        return "", 403
+
     username = request.form["username"]
     password = request.form["password"]
     attributes = request.form["attributes"]
