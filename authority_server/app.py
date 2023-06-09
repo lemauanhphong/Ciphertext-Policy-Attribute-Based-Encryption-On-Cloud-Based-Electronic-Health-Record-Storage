@@ -32,18 +32,22 @@ def hello():
 def login():
     username = request.form["username"]
     password = request.form["password"]
+
     hashed_password = hmac.new(
         bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
     ).hexdigest()
 
     user = db.query(
-        "SELECT id, username, role, permission FROM users WHERE username = %s AND password = %s",
+        "SELECT id, attributes FROM users WHERE username = %s AND password = %s",
         (username, hashed_password),
     )
-    print(user)
+
     if len(user) != 1:
         return "Wrong username or password", 401
+
+    user[0]["attributes"] = user[0]["attributes"].split(",")
     session["data"] = user[0]
+
     return "", 200
 
 
@@ -52,12 +56,9 @@ def register():
     if not request.cookies.get("session") or not session["data"]:
         return "", 401
 
-    if session["data"]["role"] != "admin":
-        return "", 403
-
     username = request.form["username"]
     password = request.form["password"]
-    role = request.form["role"]
+    attributes = request.form["attributes"]
 
     user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
 
@@ -66,8 +67,11 @@ def register():
     ).hexdigest()
 
     if user[0]["cnt"] != 0:
-        return 409, "Username already exists"
-    db.update("INSERT INTO users(username, password, role) VALUES (%s, %s, %s)", (username, hashed_password, role))
+        return "Username already exists", 409
+
+    db.update(
+        "INSERT INTO users(username, password, attributes) VALUES (%s, %s, %s)", (username, hashed_password, attributes)
+    )
     return "", 200
 
 
@@ -76,23 +80,17 @@ def parameters():
     if not request.cookies.get("session") or not session["data"]:
         return "", 401
 
-    # TODO: handle generating secret key with proper attributes
-    dict_param = {}
-    dict_param["token"] = gen_token(
-        {
-            "permission": session["data"]["permission"],
-            "username": session["data"]["username"],
-            "exp": datetime.datetime.now(tz=datetime.timezone.utc).timestamp() + 3600,
-        }
-    )
-    dict_param["public_key"] = abe.get_public_key()
-
-    # TODO: handle attributes
-    # dict_param["secret_key"] = abe.gen_secret_key(attributes)
-
-    # TODO: handle write permission
-    # if session["data"]["permission"]:
-    #    dict_param["encrypt_key"] = gen_encrypt_key()
+    dict_param = {
+        "token": gen_token(
+            {
+                "uid": session["data"]["id"],
+                "attributes": session["data"]["attributes"],
+                "exp": datetime.datetime.now(tz=datetime.timezone.utc).timestamp() + 3600,
+            }
+        ),
+        "public_key": abe.get_public_key().decode(),
+        "secret_key": abe.gen_secret_key(session["data"]["attributes"]).decode(),
+    }
 
     return dict_param, 200, {"Content-Type": "application/json"}
 
