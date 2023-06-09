@@ -12,7 +12,7 @@ enforcer = casbin.Enforcer("./abac/model.conf")
 TABLE_LIST = [
     "health_records",
     "person_profiles",
-    "research",
+    "researches",
     "financials"
 ]
 
@@ -60,17 +60,24 @@ def get(user):
     obj = table
     if not enforcer.enforce(sub, obj, act):
         return "", 403
+    
+    if table == 'health_records':
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'], data['uid'])
+    elif table =='person_profiles':
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, address, date_of_birth, uid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'], data['address'], data['date_of_birth'], data['uid'])
+    elif table == 'researches':
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data) VALUES (?, ?, ?, ?, ?)"
+        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'])
+    elif table == 'financials':
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'], data['uid'])
 
-    # TODO: only test
     
-    if table == 'person_profiles':
-        pass
-    else:
-        pass
-    
-    db.update_many(f"INSERT INTO {table} VALUES ")
-    
-    return "", 200
+    if db.update(sql, parameters):
+        return "", 200
+    return "", 400
 
 if __name__ == '__main__':
     if not os.path.exists('data'):
