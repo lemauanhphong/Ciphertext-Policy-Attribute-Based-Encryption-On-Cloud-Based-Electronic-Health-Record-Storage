@@ -49,6 +49,19 @@ class Database:
             self.conn.rollback()
             print_exception(e)
             return False
+        
+    def update_many(self, stmt, param=None):
+        try:
+            if param:
+                self.cursor.executemany(stmt, param)
+            else:
+                self.cursor.executemany(stmt)
+            self.conn.commit()
+            return True
+        except Exception as e:
+            self.conn.rollback()
+            print_exception(e)
+            return False
 
 
 db = Database()

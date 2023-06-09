@@ -19,10 +19,10 @@ CREATE TABLE
     uid INT NOT NULL,
     creator INT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    date DATE DEFAULT CURRENT_DATE,
-    date_of_birth DATE,
-    address VARCHAR(255) NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     data LONGBLOB,
+    date_of_birth DATE NOT NULL,
+    address VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
   );
 
