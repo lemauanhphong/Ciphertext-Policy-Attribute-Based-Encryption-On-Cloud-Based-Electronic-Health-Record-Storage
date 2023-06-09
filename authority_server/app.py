@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import hmac
+import json
 
 from config import COOKIE_KEY, PASSWORD_HMAC_KEY
 from database import db
@@ -30,20 +31,24 @@ def hello():
 
 @app.route("/api/login", methods=["POST"])
 def login():
-    username = request.form["username"]
-    password = request.form["password"]
+    username = request.json["username"]
+    password = request.json["password"]
+
     hashed_password = hmac.new(
         bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
     ).hexdigest()
 
     user = db.query(
-        "SELECT id, username, role, permission FROM users WHERE username = %s AND password = %s",
+        "SELECT id, attributes FROM users WHERE username = %s AND password = %s",
         (username, hashed_password),
     )
-    print(user)
+
     if len(user) != 1:
         return "Wrong username or password", 401
+
+    user[0]["attributes"] = json.loads(user[0]["attributes"])
     session["data"] = user[0]
+
     return "", 200
 
 
@@ -52,12 +57,15 @@ def register():
     if not request.cookies.get("session") or not session["data"]:
         return "", 401
 
-    if session["data"]["role"] != "admin":
+    if "admin" not in session["data"]["attributes"]["ROLES"]:
         return "", 403
 
-    username = request.form["username"]
-    password = request.form["password"]
-    role = request.form["role"]
+    username = request.json["username"]
+    password = request.json["password"]
+
+    attributes = {}
+    for attr, vals in request.json["attributes"].items():
+        attributes[attr.upper()] = [val.upper() for val in vals]
 
     user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
 
@@ -66,8 +74,12 @@ def register():
     ).hexdigest()
 
     if user[0]["cnt"] != 0:
-        return 409, "Username already exists"
-    db.update("INSERT INTO users(username, password, role) VALUES (%s, %s, %s)", (username, hashed_password, role))
+        return "Username already exists", 409
+
+    db.update(
+        "INSERT INTO users(username, password, attributes) VALUES (%s, %s, %s)",
+        (username, hashed_password, json.dumps(attributes)),
+    )
     return "", 200
 
 
@@ -76,23 +88,22 @@ def parameters():
     if not request.cookies.get("session") or not session["data"]:
         return "", 401
 
-    # TODO: handle generating secret key with proper attributes
-    dict_param = {}
-    dict_param["token"] = gen_token(
-        {
-            "permission": session["data"]["permission"],
-            "username": session["data"]["username"],
-            "exp": datetime.datetime.now(tz=datetime.timezone.utc).timestamp() + 3600,
-        }
-    )
-    dict_param["public_key"] = abe.get_public_key()
+    abe_attributes = []
+    for attr, vals in session["data"]["attributes"].items():
+        for val in vals:
+            abe_attributes.append(attr + "@" + val)
 
-    # TODO: handle attributes
-    # dict_param["secret_key"] = abe.gen_secret_key(attributes)
-
-    # TODO: handle write permission
-    # if session["data"]["permission"]:
-    #    dict_param["encrypt_key"] = gen_encrypt_key()
+    dict_param = {
+        "token": gen_token(
+            {
+                "uid": session["data"]["id"],
+                "attributes": session["data"]["attributes"],
+                "exp": datetime.datetime.now(tz=datetime.timezone.utc).timestamp() + 3600,
+            }
+        ),
+        "public_key": abe.get_public_key().decode(),
+        "secret_key": abe.gen_secret_key(abe_attributes).decode(),
+    }
 
     return dict_param, 200, {"Content-Type": "application/json"}
 
