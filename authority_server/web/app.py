@@ -54,11 +54,11 @@ def login():
 
 @app.route("/api/register", methods=["POST"])
 def register():
-    if not request.cookies.get("session") or not session["data"]:
-        return "", 401
+    # if not request.cookies.get("session") or not session["data"]:
+    #    return "", 401
 
-    if "admin" not in session["data"]["attributes"]["ROLES"]:
-        return "", 403
+    # if "admin" not in session["data"]["attributes"]["ROLES"]:
+    #    return "", 403
 
     username = request.json["username"]
     password = request.json["password"]
@@ -75,6 +75,8 @@ def register():
 
     if user[0]["cnt"] != 0:
         return "Username already exists", 409
+
+    print(json.dumps(attributes))
 
     db.update(
         "INSERT INTO users(username, password, attributes) VALUES (%s, %s, %s)",
@@ -109,4 +111,4 @@ def parameters():
 
 
 if __name__ == "__main__":
-    app.run(port=2808, debug=True)
+    app.run("0.0.0.0", 2808)

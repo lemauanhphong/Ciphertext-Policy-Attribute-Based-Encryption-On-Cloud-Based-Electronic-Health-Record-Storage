@@ -7,6 +7,13 @@ from config import JWT_PRIVKEY
 
 
 class ABE:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
         self.pairing_group = PairingGroup("SS512")
         self.hyb_abe = HybridABEnc(CPabe_BSW07(self.pairing_group), self.pairing_group)

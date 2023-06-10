@@ -5,3 +5,4 @@ flask_session
 .keys
 *.pem
 test.py
+pyproject.toml

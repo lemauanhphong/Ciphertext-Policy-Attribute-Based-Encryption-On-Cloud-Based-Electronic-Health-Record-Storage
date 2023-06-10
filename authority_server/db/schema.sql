@@ -18,7 +18,7 @@ VALUES
   (
     "admin",
     "22690f3254ccce4ff47abb8cf09785addc7a55e3b13c61b4b6a09bc5a3df2288",
-    "admin"
+    '{"ROLES": ["ADMIN"]}'
   );
 
 -- admin account
@@ -28,5 +28,5 @@ VALUES
   (
     "patient",
     "22690f3254ccce4ff47abb8cf09785addc7a55e3b13c61b4b6a09bc5a3df2288",
-    "patient"
+    '{"ROLES": ["PATIENT"]}'
   );
