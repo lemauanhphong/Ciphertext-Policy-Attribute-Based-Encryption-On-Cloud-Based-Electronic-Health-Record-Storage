@@ -17,7 +17,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "mariadb-admin ping -p123456 | grep 'mysqld is alive' || exit 1",
+          "mariadb-admin ping -p$$(echo $$MARIADB_ROOT_PASSWORD)| grep 'mysqld is alive' || exit 1",
         ]
       interval: 2s
       retries: 120
