@@ -16,8 +16,8 @@ RUN git clone https://github.com/JHUISI/charm.git && \
 	./configure.sh && \
 	make && make install
 
+COPY ./web /web
 WORKDIR /web
-COPY ./web/* .
 
 RUN pip install -r requirements.txt
 

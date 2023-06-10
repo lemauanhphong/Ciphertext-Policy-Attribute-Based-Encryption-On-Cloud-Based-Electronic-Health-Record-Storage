@@ -5,7 +5,7 @@ import json
 
 from config import COOKIE_KEY, PASSWORD_HMAC_KEY
 from database import db
-from flask import Flask, request, session
+from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from utils import abe, gen_token
 from werkzeug.exceptions import BadRequest
@@ -26,63 +26,112 @@ def handle_bad_request(e):
 
 @app.route("/", methods=["GET"])
 def hello():
-    return "Hello world"
+    return redirect("/api/login")
 
 
-@app.route("/api/login", methods=["POST"])
+@app.route("/api/logout", methods=["GET"])
+def logout():
+    session.clear()
+    return redirect("/api/login")
+
+
+@app.route("/api/change", methods=["GET", "POST"])
+def change_password():
+    session.clear()
+    if request.method == "GET":
+        return render_template("change_password.html")
+    else:
+        username = request.json["username"]
+        password = request.json["password"]
+        new_password = request.json["new_password"]
+
+        hashed_password = hmac.new(
+            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+        ).hexdigest()
+
+        user = db.query(
+            "SELECT id FROM users WHERE username = %s AND password = %s",
+            (username, hashed_password),
+        )
+
+        if len(user) == 1:
+            hashed_password = hmac.new(
+                bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(new_password, "utf-8"), digestmod=hashlib.sha256
+            ).hexdigest()
+
+            if db.update("UPDATE users SET password = ? WHERE id = ?", (hashed_password, user[0]["id"])):
+                return "", 200
+            return "", 400
+
+        else:
+            return "Wrong username or password", 401
+
+
+@app.route("/api/login", methods=["GET", "POST"])
 def login():
-    username = request.json["username"]
-    password = request.json["password"]
+    if "data" in session:
+        if "ADMIN" in session["data"]["attributes"]["ROLES"]:
+            return redirect("/api/register")
+        else:
+            return "", 200
 
-    hashed_password = hmac.new(
-        bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
-    ).hexdigest()
+    if request.method == "POST":
+        username = request.json["username"]
+        password = request.json["password"]
 
-    user = db.query(
-        "SELECT id, attributes FROM users WHERE username = %s AND password = %s",
-        (username, hashed_password),
-    )
+        hashed_password = hmac.new(
+            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+        ).hexdigest()
 
-    if len(user) != 1:
-        return "Wrong username or password", 401
+        user = db.query(
+            "SELECT id, attributes FROM users WHERE username = %s AND password = %s",
+            (username, hashed_password),
+        )
 
-    user[0]["attributes"] = json.loads(user[0]["attributes"])
-    session["data"] = user[0]
+        if len(user) != 1:
+            return "Wrong username or password", 401
 
-    return "", 200
+        user[0]["attributes"] = json.loads(user[0]["attributes"])
+        session["data"] = user[0]
+
+        if "ADMIN" in session["data"]["attributes"]["ROLES"]:
+            return redirect("/api/register")
+        return "", 200
+
+    return render_template("login.html")
 
 
-@app.route("/api/register", methods=["POST"])
+@app.route("/api/register", methods=["POST", "GET"])
 def register():
-    # if not request.cookies.get("session") or not session["data"]:
-    #    return "", 401
+    if "data" not in session:
+        return redirect("/")
 
-    # if "admin" not in session["data"]["attributes"]["ROLES"]:
-    #    return "", 403
+    if "ADMIN" not in session["data"]["attributes"]["ROLES"]:
+        return "", 403
 
-    username = request.json["username"]
-    password = request.json["password"]
+    if request.method == "POST":
+        username = request.json["username"]
+        password = request.json["password"]
 
-    attributes = {}
-    for attr, vals in request.json["attributes"].items():
-        attributes[attr.upper()] = [val.upper() for val in vals]
+        attributes = {}
+        for attr, vals in request.json["attributes"].items():
+            attributes[attr.upper()] = [val.upper() for val in vals]
 
-    user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
+        user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
 
-    hashed_password = hmac.new(
-        bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
-    ).hexdigest()
+        hashed_password = hmac.new(
+            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+        ).hexdigest()
 
-    if user[0]["cnt"] != 0:
-        return "Username already exists", 409
+        if user[0]["cnt"] != 0:
+            return "Username already exists", 409
+        db.update(
+            "INSERT INTO users(username, password, attributes) VALUES (%s, %s, %s)",
+            (username, hashed_password, json.dumps(attributes)),
+        )
+        return "", 200
 
-    print(json.dumps(attributes))
-
-    db.update(
-        "INSERT INTO users(username, password, attributes) VALUES (%s, %s, %s)",
-        (username, hashed_password, json.dumps(attributes)),
-    )
-    return "", 200
+    return render_template("register.html")
 
 
 @app.route("/api/parameters", methods=["GET"])
