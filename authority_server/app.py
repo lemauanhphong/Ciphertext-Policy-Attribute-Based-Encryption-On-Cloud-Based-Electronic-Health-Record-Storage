@@ -4,9 +4,9 @@ import hmac
 
 from config import COOKIE_KEY, PASSWORD_HMAC_KEY
 from database import db
-from flask import Flask, request, session
+from flask import Flask, request, session, redirect, render_template
 from flask_session import Session
-from utils import abe, gen_token
+# from utils import abe, gen_token
 from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
@@ -25,50 +25,59 @@ def handle_bad_request(e):
 
 @app.route("/", methods=["GET"])
 def hello():
-    return "Hello world"
+    return redirect('/api/login')
 
 
-@app.route("/api/login", methods=["POST"])
+@app.route("/api/login", methods=["GET", "POST"])
 def login():
-    username = request.form["username"]
-    password = request.form["password"]
-    hashed_password = hmac.new(
-        bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
-    ).hexdigest()
+    if "data" in session:
+        return redirect('/api/register')
 
-    user = db.query(
-        "SELECT id, username, role, permission FROM users WHERE username = %s AND password = %s",
-        (username, hashed_password),
-    )
-    print(user)
-    if len(user) != 1:
-        return "Wrong username or password", 401
-    session["data"] = user[0]
-    return "", 200
+    if request.method == 'POST':
+        username = request.form["username"]
+        password = request.form["password"]
+        hashed_password = hmac.new(
+            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+        ).hexdigest()
+
+        user = db.query(
+            "SELECT id, username, role, permission FROM users WHERE username = %s AND password = %s",
+            (username, hashed_password),
+        )
+        print(user)
+        if len(user) != 1:
+            return "Wrong username or password", 401
+        session["data"] = user[0]
+        return "", 200
+    
+    return render_template('login.html')
 
 
-@app.route("/api/register", methods=["POST"])
+@app.route("/api/register", methods=["POST", "GET"])
 def register():
-    if not request.cookies.get("session") or not session["data"]:
+    if "data" in session:
         return "", 401
 
     if session["data"]["role"] != "admin":
         return "", 403
 
-    username = request.form["username"]
-    password = request.form["password"]
-    role = request.form["role"]
+    if request.method == 'POST':
+        username = request.form["username"]
+        password = request.form["password"]
+        role = request.form["role"]
 
-    user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
+        user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
 
-    hashed_password = hmac.new(
-        bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
-    ).hexdigest()
+        hashed_password = hmac.new(
+            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+        ).hexdigest()
 
-    if user[0]["cnt"] != 0:
-        return 409, "Username already exists"
-    db.update("INSERT INTO users(username, password, role) VALUES (%s, %s, %s)", (username, hashed_password, role))
-    return "", 200
+        if user[0]["cnt"] != 0:
+            return 409, "Username already exists"
+        db.update("INSERT INTO users(username, password, role) VALUES (%s, %s, %s)", (username, hashed_password, role))
+        return "", 200
+    
+    return render_template('register.html')
 
 
 @app.route("/api/parameters", methods=["GET"])
