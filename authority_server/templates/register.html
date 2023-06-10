@@ -10,9 +10,13 @@
 </head>
 <body>
 
+<a class="btn btn-primary" href="/api/login" role="button">Login</a>
+<a class="btn btn-primary" href="/api/change" role="button">Change password</a>
+<a class="btn btn-primary" href="/api/logout" role="button">Logout</a>
+
 <div class="container">
   <h2>Register</h2>
-  <form action="/api/register">
+  <form onsubmit="handleClick(event)">
     <div class="form-group">
       <label for="username">Username:</label>
       <input type="username" class="form-control" id="username" placeholder="Enter username" name="username">
@@ -22,13 +26,44 @@
       <input type="password" class="form-control" id="password" placeholder="Enter password" name="password">
     </div>
     <div class="form-group">
-      <label for="attributes">Attributes:</label>
-      <input type="attributes" class="form-control" id="attributes" placeholder="Enter attributes" name="attributes">
+      <label for="roles">Roles:</label>
+      <input type="roles" class="form-control" id="roles" placeholder="Enter roles" name="roles">
+    </div>
+    <div class="form-group">
+      <label for="address">Address:</label>
+      <input type="address" class="form-control" id="address" placeholder="Enter address" name="address">
     </div>
     <button type="submit" class="btn btn-default">Register</button>
-    <p name="response"></p>
+    <p id="response"></p>
   </form>
 </div>
+
+<script>
+  function handleClick(event)
+	{
+    event.preventDefault();
+
+    var options = {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+        attributes: {
+          roles: document.getElementById("roles").value.split(','),
+          address: document.getElementById("address").value.split()
+        }
+      })
+    }
+    
+	  fetch('/api/register', options)
+    .then(response => {
+      if (!response.ok) document.getElementById("response").innerHTML = response.ok ? "Ok" : "Error";
+    })
+  }
+</script>
 
 </body>
 </html>
