@@ -61,14 +61,14 @@ def get(user):
         return "You do not have permission to upload files", 403
 
     if table == "health_records":
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["date"], data["description"], data["data"], data["uid"])
+        sql = f"INSERT INTO {table}(uploader_id, name, last_modified, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["last_modified"], data["description"], data["data"], data["uid"])
     elif table == "person_profiles":
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, address, date_of_birth, uid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        sql = f"INSERT INTO {table}(uploader_id, name, last_modified, description, data, address, date_of_birth, uid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         parameters = (
             user["uid"],
             data["name"],
-            data["date"],
+            data["last_modified"],
             data["description"],
             data["data"],
             data["address"],
@@ -76,11 +76,11 @@ def get(user):
             data["uid"],
         )
     elif table == "researches":
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data) VALUES (?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["date"], data["description"], data["data"])
+        sql = f"INSERT INTO {table}(uploader_id, name, last_modified, description, data) VALUES (?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["last_modified"], data["description"], data["data"])
     elif table == "financials":
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["date"], data["description"], data["data"], data["uid"])
+        sql = f"INSERT INTO {table}(uploader_id, name, last_modified, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["last_modified"], data["description"], data["data"], data["uid"])
 
     err = db.update(sql, parameters)
     if err:
