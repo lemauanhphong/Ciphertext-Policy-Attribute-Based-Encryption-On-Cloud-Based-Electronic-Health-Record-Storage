@@ -1,37 +1,34 @@
-from flask import Flask, request
-from database import db
-import werkzeug
-from auth_middleware import token_required
-import os
 import casbin
+from auth_middleware import token_required
+from database import db
+from flask import Flask, request
+from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
-
 enforcer = casbin.Enforcer("./abac/model.conf")
 
-TABLE_LIST = [
-    "health_records",
-    "person_profiles",
-    "researches",
-    "financials"
-]
+TABLE_LIST = ["health_records", "person_profiles", "researches", "financials"]
 
-@app.errorhandler(werkzeug.exceptions.BadRequest)
+
+@app.errorhandler(BadRequest)
 def handle_bad_request(e):
     print(e)
     return "", 400
 
-@app.route('/', methods = ['GET'])
+
+@app.route("/", methods=["GET"])
 def hello():
     return "Hello world"
 
-@app.route('/pull', methods = ['POST'])
+
+@app.route("/pull", methods=["POST"])
 @token_required
 def pull(user):
     data = request.json
-    table = data['table']
-    if (table not in TABLE_LIST):
-        return "", 400
+
+    table = data["table"]
+    if table not in TABLE_LIST:
+        return "The table does not exist", 400
 
     # TODO: only test
     sql = """
@@ -42,42 +39,55 @@ def pull(user):
     WHERE t1.uid = %d
     OR (t2.address LIKE %d AND t2.date_of_birth = %s)
 
-    """ % (table, )
-    l = db.query(sql, (data['uid'], data['address'], data['date_of_birth']))
+    """ % (
+        table,
+    )
+    l = db.query(sql, (data["uid"], data["address"], data["date_of_birth"]))
     return l
-        
-@app.route('/push', methods = ['POST'])
+
+
+@app.route("/push", methods=["POST"])
 @token_required
-def get(user):    
+def get(user):
     data = request.json
 
-    table = data['table']
-    if (table not in TABLE_LIST):
-        return "", 400
+    table = data["table"]
+    if table not in TABLE_LIST:
+        return "The table does not exist", 400
 
     act = "push"
     sub = user
     obj = table
-    if not enforcer.enforce(sub, obj, act):
-        return "", 403
-    
-    if table == 'health_records':
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
-        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'], data['uid'])
-    elif table =='person_profiles':
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, address, date_of_birth, uid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'], data['address'], data['date_of_birth'], data['uid'])
-    elif table == 'researches':
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data) VALUES (?, ?, ?, ?, ?)"
-        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'])
-    elif table == 'financials':
-        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
-        parameters = (user['uid'], data['name'], data['date'], data['description'], data['data'], data['uid'])
 
-    
+    if not enforcer.enforce(sub, obj, act):
+        return "You do not have permission to upload files", 403
+
+    if table == "health_records":
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["date"], data["description"], data["data"], data["uid"])
+    elif table == "person_profiles":
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, address, date_of_birth, uid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        parameters = (
+            user["uid"],
+            data["name"],
+            data["date"],
+            data["description"],
+            data["data"],
+            data["address"],
+            data["date_of_birth"],
+            data["uid"],
+        )
+    elif table == "researches":
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data) VALUES (?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["date"], data["description"], data["data"])
+    elif table == "financials":
+        sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["date"], data["description"], data["data"], data["uid"])
+
     if db.update(sql, parameters):
-        return "", 200
+        return "Upload successful", 200
     return "", 400
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run("0.0.0.0", 2809)
