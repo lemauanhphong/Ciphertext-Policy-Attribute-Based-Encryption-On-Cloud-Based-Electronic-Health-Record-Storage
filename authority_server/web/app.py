@@ -17,7 +17,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-
+#TODO: frontend is being moved to windows application, should be removed in the future
 @app.errorhandler(BadRequest)
 def handle_bad_request(e):
     print(e)
