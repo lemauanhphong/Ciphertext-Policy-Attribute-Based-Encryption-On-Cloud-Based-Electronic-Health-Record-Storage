@@ -95,8 +95,8 @@ def login():
         session["data"] = user[0]
 
         if "ADMIN" in session["data"]["attributes"]["ROLES"]:
-            return redirect("/api/register")
-        return "", 200
+            return "Welcome admin", 200
+        return "Welcome client", 200
 
     return render_template("login.html")
 
