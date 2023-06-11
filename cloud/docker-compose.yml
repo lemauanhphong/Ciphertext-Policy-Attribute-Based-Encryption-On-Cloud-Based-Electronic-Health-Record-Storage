@@ -1,23 +1,23 @@
 services:
+  web:
+    build: .
+    ports:
+      - "2809:2809"
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: mariadb
     environment:
       MARIADB_ROOT_PASSWORD: 123456
-      MARIADB_DATABSE: cloud 
-    ports:
-      - "3307:3306"
+      MARIADB_DATABSE: authority_server
     volumes:
-      # - datadir:/var/lib/mysql
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    networks:
-      static-network:
-        ipv4_address: 172.22.3.2
-
-# volumes:
-#   datadir:
-
-networks:
-  static-network:
-    ipam:
-      config:
-        - subnet: 172.22.3.0/24
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb-admin ping -p$$(echo $$MARIADB_ROOT_PASSWORD)| grep 'mysqld is alive' || exit 1",
+        ]
+      interval: 2s
+      retries: 120

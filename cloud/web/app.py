@@ -80,6 +80,4 @@ def get(user):
     return "", 400
 
 if __name__ == '__main__':
-    if not os.path.exists('data'):
-        os.makedirs('data')
-    app.run(port=2809, debug=True)
+    app.run("0.0.0.0", 2809)
