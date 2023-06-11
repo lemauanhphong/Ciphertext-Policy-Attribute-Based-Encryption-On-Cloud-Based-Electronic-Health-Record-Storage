@@ -1,4 +1,5 @@
 import casbin
+import mariadb
 from auth_middleware import token_required
 from database import db
 from flask import Flask, request
@@ -31,19 +32,16 @@ def pull(user):
         return "The table does not exist", 400
 
     # TODO: only test
-    sql = """
+    sql = f"""
     SELECT t1.*, t2.name, t2.date_of_birth
     FROM {table} AS t1
     LEFT JOIN person_profiles AS t2
     ON t1.uid = t2.uid
     WHERE t1.uid = %d
-    OR (t2.address LIKE %d AND t2.date_of_birth = %s)
+    OR (t2.address LIKE %s AND t2.date_of_birth = %s)
 
-    """ % (
-        table,
-    )
-    l = db.query(sql, (data["uid"], data["address"], data["date_of_birth"]))
-    return l
+    """
+    return db.query(sql, (data["uid"], data["address"], data["date_of_birth"]))
 
 
 @app.route("/push", methods=["POST"])
@@ -84,9 +82,13 @@ def get(user):
         sql = f"INSERT INTO {table}(uploader_id, name, date, description, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
         parameters = (user["uid"], data["name"], data["date"], data["description"], data["data"], data["uid"])
 
-    if db.update(sql, parameters):
-        return "Upload successful", 200
-    return "", 400
+    err = db.update(sql, parameters)
+    if err:
+        if table == "health_records" and isinstance(err, mariadb.IntegrityError):
+            return "Please create a person profile first", 500
+        return "Something went wrong", 500
+
+    return "Upload successful", 200
 
 
 if __name__ == "__main__":
