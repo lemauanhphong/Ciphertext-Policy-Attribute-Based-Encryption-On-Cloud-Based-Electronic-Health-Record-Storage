@@ -17,7 +17,7 @@ class Database:
             self.conn = mariadb.connect(
                 user="root",
                 password="123456",
-                host="172.22.3.2",
+                host="db",
                 port=3306,
                 database="cloud",
             )

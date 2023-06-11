@@ -1,0 +1,4 @@
+casbin==1.19.0
+Flask==2.2.5
+mariadb==1.1.6
+PyJWT==2.7.0
