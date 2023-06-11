@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1033</width>
-    <height>903</height>
+    <width>914</width>
+    <height>595</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -264,7 +264,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1033</width>
+     <width>914</width>
      <height>24</height>
     </rect>
    </property>
@@ -272,8 +272,8 @@
     <property name="title">
      <string>Session</string>
     </property>
-    <addaction name="act_login"/>
     <addaction name="act_logout"/>
+    <addaction name="act_quit"/>
    </widget>
    <addaction name="menuSession"/>
   </widget>
@@ -286,6 +286,11 @@
   <action name="act_logout">
    <property name="text">
     <string>Logout</string>
+   </property>
+  </action>
+  <action name="act_quit">
+   <property name="text">
+    <string>Quit</string>
    </property>
   </action>
  </widget>

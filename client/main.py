@@ -1,56 +1,83 @@
+import io
 import os
 import sys
+from contextlib import redirect_stdout
 from traceback import print_exc
+from urllib.parse import urljoin
 
 from charm.adapters.abenc_adapt_hybrid import HybridABEnc
 from charm.core.engine.util import bytesToObject, objectToBytes
 from charm.schemes.abenc.abenc_bsw07 import CPabe_BSW07
 from charm.toolbox.pairinggroup import PairingGroup
 from PyQt6.QtCore import pyqtSlot
-from PyQt6.QtWidgets import QApplication, QDialog, QFileDialog, QMainWindow, QMessageBox
+from PyQt6.QtWidgets import (QApplication, QDialog, QFileDialog, QMainWindow,
+                             QMessageBox)
+from requests import Session
+
 from ui.login import Ui_dlg_login
 from ui.main import Ui_main_window
 
-AUTHORITY_SERVER_URL = "http://localhost"
+AUTHORITY_SERVER_URL = "http://localhost:2808/"
 
-KEYS_FILE_NAME = ".keys"
-DOWNLOAD_FOLDER = "downloaded_files"
-ENCRYPT_FOLDER = "encrypted_files"
-DECRYPT_FOLDER = "decrypted_files"
+ENCRYPTED_FILES_FOLDER = "encrypted_files"
+DECRYPTED_FILES_FOLDER = "decrypted_files"
+DOWNLOADED_FILES_FOLDER = "downloaded_files"
 
 
 class LoginWindow(QDialog, Ui_dlg_login):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        self.parent = parent
 
     @pyqtSlot()
     def on_btn_login_clicked(self):
-        pass
+        try:
+            r = self.parent.session.post(
+                urljoin(AUTHORITY_SERVER_URL, "/api/login"),
+                json={"username": self.le_username.text(), "password": self.le_password.text()},
+            )
+        except Exception:
+            print_exc()
+            self.popup("Please check your internet connection!", "Failed to conenct to server")
+            return
+
+        if r.status_code == 200:
+            self.accept()
+        else:
+            self.popup(r.text, "Failed to login")
 
     @pyqtSlot()
     def on_btn_cancel_clicked(self):
         self.reject()
+
+    def popup(self, message, title="Error"):
+        window = QMessageBox(self)
+        window.setWindowTitle(title)
+        window.setText(message)
+        window.exec()
 
 
 class MainWindow(QMainWindow, Ui_main_window):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.init_abe()
 
-    @pyqtSlot()
-    def on_act_login_triggered(self):
-        print("login")
-        window = LoginWindow(self)
-        if window.exec():
-            self.get_keys_from_server()
-            self.load_keys_from_file()
+        self.pairing_group = PairingGroup("SS512")
+        self.hyb_abe = HybridABEnc(CPabe_BSW07(self.pairing_group), self.pairing_group)
+
+        self.session = Session()
+        self.login()
 
     @pyqtSlot()
     def on_act_logout_triggered(self):
-        if os.path.isfile(KEYS_FILE_NAME):
-            os.remove(KEYS_FILE_NAME)
+        self.token = self.public_key = self.secret_key = None
+        self.hide()
+        self.login()
+
+    @pyqtSlot()
+    def on_act_quit_triggered(self):
+        sys.exit()
 
     @pyqtSlot()
     def on_btn_browse_encrypt_file_clicked(self):
@@ -62,7 +89,7 @@ class MainWindow(QMainWindow, Ui_main_window):
 
     @pyqtSlot()
     def on_btn_encrypt_clicked(self):
-        if not self.public_key or not self.private_key:
+        if not self.public_key or not self.secret_key:
             self.popup("No key found!")
             return
 
@@ -76,15 +103,28 @@ class MainWindow(QMainWindow, Ui_main_window):
         if not content:
             return
 
-        os.makedirs(ENCRYPT_FOLDER, exist_ok=True)
-        with open(os.path.join(ENCRYPT_FOLDER, os.path.basename(file_name)) + ".enc", "wb") as f:
-            f.write(objectToBytes(self.hyb_abe.encrypt(self.public_key, content, policy), self.pairing_group))
+        os.makedirs(ENCRYPTED_FILES_FOLDER, exist_ok=True)
 
-        self.popup("Encrypted successfully!", "Encryption")
+        try:
+            f = io.StringIO()
+            with redirect_stdout(f):
+                enc = self.hyb_abe.encrypt(self.public_key, content, policy)
+
+            if f.getvalue():
+                raise Exception
+        except Exception:
+            print_exc()
+            self.popup("Please double check your access policy", "Encryption Failed")
+            return
+
+        with open(os.path.join(ENCRYPTED_FILES_FOLDER, os.path.basename(file_name)) + ".enc", "wb") as f:
+            f.write(objectToBytes(enc, self.pairing_group))
+
+        self.popup("Encrypted successfully!", "Encryption Successful")
 
     @pyqtSlot()
     def on_btn_decrypt_clicked(self):
-        if not self.public_key or not self.private_key:
+        if not self.public_key or not self.secret_key:
             self.popup("No key found!")
             return
 
@@ -97,14 +137,31 @@ class MainWindow(QMainWindow, Ui_main_window):
         if ext == ".enc":
             file_name = path
 
-        os.makedirs(DECRYPT_FOLDER, exist_ok=True)
-        with open(os.path.join(DECRYPT_FOLDER, os.path.basename(file_name)), "wb") as f:
-            f.write(self.hyb_abe.decrypt(self.public_key, self.private_key, bytesToObject(content, self.pairing_group)))
+        os.makedirs(DECRYPTED_FILES_FOLDER, exist_ok=True)
 
-        self.popup("Decrypted successfully!", "Decryption")
+        try:
+            with open(os.path.join(DECRYPTED_FILES_FOLDER, os.path.basename(file_name)), "wb") as f:
+                f.write(
+                    self.hyb_abe.decrypt(self.public_key, self.secret_key, bytesToObject(content, self.pairing_group))
+                )
+
+            self.popup("Decrypted successfully!", "Decryption Successful")
+        except Exception:
+            print_exc()
+            self.popup(
+                "You may not have the necessary permissions to decrypt this file",
+                "Decryption Failed",
+            )
+
+    def login(self):
+        if LoginWindow(self).exec():
+            self.show()
+            self.get_keys_from_server()
+        else:
+            sys.exit()
 
     def browse_file(self, line_edit):
-        path = QFileDialog.getOpenFileName(self, filter="All files (*.*)")[0]
+        path, _ = QFileDialog.getOpenFileName(self, filter="All files (*.*)")
         if path:
             line_edit.setText(path)
 
@@ -117,23 +174,12 @@ class MainWindow(QMainWindow, Ui_main_window):
             self.popup(f"Cannot access {file_name}: No such file or directory")
             return None
 
-    def init_abe(self):
-        self.pairing_group = PairingGroup("SS512")
-        self.hyb_abe = HybridABEnc(CPabe_BSW07(self.pairing_group), self.pairing_group)
-        self.public_key = self.private_key = None
-        self.load_keys_from_file()
-
     def get_keys_from_server(self):
-        pass
+        data = self.session.get(urljoin(AUTHORITY_SERVER_URL, "api/parameters")).json()
 
-    def load_keys_from_file(self, file_name=KEYS_FILE_NAME):
-        try:
-            with open(file_name, "rb") as f:
-                content = f.read().splitlines()
-                self.public_key = bytesToObject(content[0], self.pairing_group)
-                self.private_key = bytesToObject(content[1], self.pairing_group)
-        except Exception:
-            pass
+        self.token = data["token"]
+        self.public_key = bytesToObject(data["public_key"], self.pairing_group)
+        self.secret_key = bytesToObject(data["secret_key"], self.pairing_group)
 
     def popup(self, message, title="Error"):
         window = QMessageBox(self)
@@ -144,5 +190,4 @@ class MainWindow(QMainWindow, Ui_main_window):
 
 app = QApplication(sys.argv)
 main = MainWindow()
-main.show()
 sys.exit(app.exec())

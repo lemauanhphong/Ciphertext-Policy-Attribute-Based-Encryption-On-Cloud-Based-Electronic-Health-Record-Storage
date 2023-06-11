@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_main_window(object):
     def setupUi(self, main_window):
         main_window.setObjectName("main_window")
-        main_window.resize(1033, 903)
+        main_window.resize(914, 595)
         self.centralwidget = QtWidgets.QWidget(parent=main_window)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -141,7 +141,7 @@ class Ui_main_window(object):
         self.horizontalLayout.addWidget(self.tabWidget)
         main_window.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=main_window)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1033, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 914, 24))
         self.menubar.setObjectName("menubar")
         self.menuSession = QtWidgets.QMenu(parent=self.menubar)
         self.menuSession.setObjectName("menuSession")
@@ -153,8 +153,10 @@ class Ui_main_window(object):
         self.act_login.setObjectName("act_login")
         self.act_logout = QtGui.QAction(parent=main_window)
         self.act_logout.setObjectName("act_logout")
-        self.menuSession.addAction(self.act_login)
+        self.act_quit = QtGui.QAction(parent=main_window)
+        self.act_quit.setObjectName("act_quit")
         self.menuSession.addAction(self.act_logout)
+        self.menuSession.addAction(self.act_quit)
         self.menubar.addAction(self.menuSession.menuAction())
 
         self.retranslateUi(main_window)
@@ -194,3 +196,4 @@ class Ui_main_window(object):
         self.menuSession.setTitle(_translate("main_window", "Session"))
         self.act_login.setText(_translate("main_window", "Login"))
         self.act_logout.setText(_translate("main_window", "Logout"))
+        self.act_quit.setText(_translate("main_window", "Quit"))
