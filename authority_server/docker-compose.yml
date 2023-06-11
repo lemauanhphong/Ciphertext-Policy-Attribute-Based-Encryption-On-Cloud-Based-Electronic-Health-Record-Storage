@@ -10,7 +10,7 @@ services:
     image: mariadb
     environment:
       MARIADB_ROOT_PASSWORD: 123456
-      MARIADB_DATABSE: cloud
+      MARIADB_DATABSE: authority_server
     volumes:
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
