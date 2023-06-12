@@ -12,6 +12,7 @@ from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
 
+
 app.config["SECRET_KEY"] = COOKIE_KEY
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
