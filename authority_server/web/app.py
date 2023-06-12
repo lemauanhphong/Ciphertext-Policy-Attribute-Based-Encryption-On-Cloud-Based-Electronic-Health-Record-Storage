@@ -161,4 +161,4 @@ def parameters():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=2808, ssl_context='achoc')
+    app.run("0.0.0.0", 2808)
