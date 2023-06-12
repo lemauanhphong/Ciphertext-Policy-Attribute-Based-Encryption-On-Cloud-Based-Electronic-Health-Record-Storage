@@ -12,6 +12,7 @@ from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
 
+
 app.config["SECRET_KEY"] = COOKIE_KEY
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -160,4 +161,4 @@ def parameters():
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", 2808)
+    app.run(host="0.0.0.0", port=2808, ssl_context='achoc')
