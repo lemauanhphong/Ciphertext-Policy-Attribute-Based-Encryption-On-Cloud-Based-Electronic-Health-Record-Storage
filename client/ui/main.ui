@@ -6,128 +6,135 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>914</width>
-    <height>595</height>
+    <width>1028</width>
+    <height>727</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>ABE Client</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cb_table">
+        <item>
+         <property name="text">
+          <string>person_profiles</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>health_records</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>researches</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>financials</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Category</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="le_address"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbl_address">
+        <property name="text">
+         <string>Address</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="le_name"/>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="le_description"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="lbl_description">
+        <property name="text">
+         <string>Description</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>User ID</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLineEdit" name="le_uid"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="lbl_date_of_birth">
+          <property name="text">
+           <string>Date of birth</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="le_date_of_birth"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>ABE</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QGroupBox" name="groupBox">
-          <property name="title">
-           <string>Encryptor</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="2">
-            <widget class="QPlainTextEdit" name="pte_policy"/>
-           </item>
-           <item row="1" column="2">
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QLineEdit" name="le_encrypt_file"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btn_browse_encrypt_file">
-               <property name="text">
-                <string>Browse</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btn_encrypt">
-               <property name="text">
-                <string>Encrypt</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>Policy</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>File to encrypt</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_2">
-          <property name="title">
-           <string>Decryptor</string>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_9">
-           <item>
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>File to decrypt</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="le_decrypt_file"/>
-           </item>
-           <item>
-            <widget class="QPushButton" name="btn_browse_decrypt_file">
-             <property name="text">
-              <string>Browse</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="btn_decrypt">
-             <property name="text">
-              <string>Decrypt</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_4">
+      <widget class="QWidget" name="tab_0">
        <attribute name="title">
         <string>Download from Cloud</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLineEdit" name="le_search"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btn_search">
-            <property name="text">
-             <string>Search</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QTableWidget" name="tableWidget">
+         <widget class="QTableWidget" name="tb_found_items">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <column>
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Name</string>
+           </property>
+          </column>
           <column>
            <property name="text">
             <string>File name</string>
@@ -135,12 +142,12 @@
           </column>
           <column>
            <property name="text">
-            <string>Author</string>
+            <string>Description</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>Date</string>
+            <string>Last modified</string>
            </property>
           </column>
          </widget>
@@ -161,6 +168,13 @@
            </spacer>
           </item>
           <item>
+           <widget class="QPushButton" name="btn_search">
+            <property name="text">
+             <string>Search</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="btn_download">
             <property name="text">
              <string>Download selected items</string>
@@ -171,87 +185,51 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tab_1">
        <attribute name="title">
         <string>Upload to Cloud</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Category</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cb_category">
-            <item>
-             <property name="text">
-              <string>Health record</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Profile</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Financial</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="1" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Encryption Policy</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPlainTextEdit" name="pte_policy"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
              <string>File to upload</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_6"/>
+          <item>
+           <widget class="QLineEdit" name="le_file_name"/>
           </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QLineEdit" name="le_upload_file"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_browse_upload_file">
-              <property name="autoFillBackground">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Browse</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_upload">
-              <property name="text">
-               <string>Upload</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+          <item>
+           <widget class="QPushButton" name="btn_browse">
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Browse</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_upload">
+            <property name="text">
+             <string>Upload</string>
+            </property>
+           </widget>
           </item>
          </layout>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>693</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>
@@ -264,7 +242,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>914</width>
+     <width>1028</width>
      <height>24</height>
     </rect>
    </property>
@@ -272,12 +250,12 @@
     <property name="title">
      <string>Session</string>
     </property>
+    <addaction name="act_change_password"/>
     <addaction name="act_logout"/>
     <addaction name="act_quit"/>
    </widget>
    <addaction name="menuSession"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="act_login">
    <property name="text">
     <string>Login</string>
@@ -291,6 +269,11 @@
   <action name="act_quit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="act_change_password">
+   <property name="text">
+    <string>Change password</string>
    </property>
   </action>
  </widget>

@@ -22,6 +22,41 @@ def hello():
     return "Hello world"
 
 
+@app.route("/search", methods=["POST"])
+@token_required
+def search(user):
+    data = request.json
+
+    table = data["table"]
+    if table not in TABLE_LIST:
+        return "The table does not exist", 400
+
+    if table == "person_profiles":
+        sql = f"""
+        SELECT
+            id, name, file_name, description, last_modified
+        FROM
+            {table}
+        WHERE
+            id = %d OR
+            (address LIKE %s AND date_of_birth = %s)
+        """
+
+    else:
+        sql = f"""
+        SELECT
+            t1.id, t1.name, t1.file_name, t1.description, t1.last_modified
+        FROM
+            {table} AS t1
+        LEFT JOIN
+            person_profiles AS t2 ON t1.uid = t2.id
+        WHERE
+            t1.uid = %d OR
+            (t2.address LIKE %s AND t2.date_of_birth = %s)
+        """
+    return db.query(sql, (data["uid"], data["address"], data["date_of_birth"]))
+
+
 @app.route("/pull", methods=["POST"])
 @token_required
 def pull(user):
@@ -31,17 +66,8 @@ def pull(user):
     if table not in TABLE_LIST:
         return "The table does not exist", 400
 
-    # TODO: only test
-    sql = f"""
-    SELECT t1.*, t2.name, t2.date_of_birth
-    FROM {table} AS t1
-    LEFT JOIN person_profiles AS t2
-    ON t1.uid = t2.uid
-    WHERE t1.uid = %d
-    OR (t2.address LIKE %s AND t2.date_of_birth = %s)
-
-    """
-    return db.query(sql, (data["uid"], data["address"], data["date_of_birth"]))
+    sql = f"SELECT file_name, data FROM {table} WHERE id = %d"
+    return db.query(sql, (data["id"],))
 
 
 @app.route("/push", methods=["POST"])
@@ -61,25 +87,26 @@ def get(user):
         return "You do not have permission to upload files", 403
 
     if table == "health_records":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, data, uid) VALUES (?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["description"], data["data"], data["uid"])
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["description"], data["file_name"], data["data"], data["uid"])
     elif table == "person_profiles":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, data, address, date_of_birth, uid) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, address, date_of_birth, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         parameters = (
             user["uid"],
             data["name"],
             data["description"],
+            data["file_name"],
             data["data"],
             data["address"],
             data["date_of_birth"],
             data["uid"],
         )
     elif table == "researches":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, data) VALUES (?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["description"], data["data"])
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data) VALUES (?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["description"], data["file_name"], data["data"])
     elif table == "financials":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, data, uid) VALUES (?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["description"], data["data"], data["uid"])
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["description"], data["file_name"], data["data"], data["uid"])
 
     err = db.update(sql, parameters)
     if err:

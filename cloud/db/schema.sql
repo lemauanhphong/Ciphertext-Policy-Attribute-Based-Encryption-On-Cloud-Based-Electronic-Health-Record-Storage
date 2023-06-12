@@ -4,7 +4,7 @@ USE cloud;
 
 CREATE TABLE
   person_profiles (
-    uid INT NOT NULL,
+    id INT NOT NULL,
     uploader_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     last_modified DATETIME DAFAULT CURRENT_TIMESTAMP,
@@ -12,20 +12,26 @@ CREATE TABLE
     data LONGTEXT,
     address VARCHAR(255) NOT NULL,
     date_of_birth DATE NOT NULL,
-    PRIMARY KEY (uid)
+    description VARCHAR(255) NOT NULL,
+    last_modified DATE DEFAULT CURRENT_DATE,
+    file_name VARCHAR(255) NOT NULL,
+    data LONGTEXT,
+    PRIMARY KEY (id)
   );
 
 CREATE TABLE
   health_records (
     id INT NOT NULL AUTO_INCREMENT,
     uploader_id INT NOT NULL,
+    uid INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     last_modified DATETIME DAFAULT CURRENT_TIMESTAMP,
     description VARCHAR(255) NOT NULL,
+    last_modified DATE DEFAULT CURRENT_DATE,
+    file_name VARCHAR(255) NOT NULL,
     data LONGTEXT,
-    uid INT NOT NULL,
     PRIMARY KEY (id),
-    FOREIGN KEY (uid) REFERENCES person_profiles (uid)
+    FOREIGN KEY (uid) REFERENCES person_profiles (id)
   );
 
 CREATE TABLE
@@ -35,6 +41,7 @@ CREATE TABLE
     name VARCHAR(255) NOT NULL,
     last_modified DATETIME DAFAULT CURRENT_TIMESTAMP,
     description VARCHAR(255) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
     data LONGTEXT,
     PRIMARY KEY (id)
   );
@@ -42,11 +49,13 @@ CREATE TABLE
 CREATE TABLE
   financials (
     id INT NOT NULL AUTO_INCREMENT,
+    uid INT NOT NULL,
     uploader_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     last_modified DATETIME DAFAULT CURRENT_TIMESTAMP,
     description VARCHAR(255) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
     data LONGTEXT,
-    uid INT NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (uid) REFERENCES person_profiles (id)
   );
