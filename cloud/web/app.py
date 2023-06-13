@@ -6,6 +6,8 @@ from flask import Flask, request
 from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 #50 Mb
+
 enforcer = casbin.Enforcer("./abac/model.conf")
 
 TABLE_LIST = ["health_records", "person_profiles", "researches", "financials"]
@@ -27,21 +29,44 @@ def hello():
 def search(user):
     data = request.json
 
+    uid = data["uid"]
     table = data["table"]
+    name = data["name"]
+    address = data["address"]
+    date_of_birth = data["date_of_birth"]
+    if name != "":
+        name = "%" + data["name"] + "%"
+    if data["address"] != "":
+        address = "%" + data["address"] + "%"
+    if data["date_of_birth"] != "":
+        date_of_birth = "%" + data["date_of_birth"] + "%"
     if table not in TABLE_LIST:
         return "The table does not exist", 400
 
+    params = ()
     if table == "person_profiles":
         sql = f"""
         SELECT
             id, name, file_name, description, last_modified
         FROM
             {table}
-        WHERE
-            id = %d OR
-            (address LIKE %s AND date_of_birth = %s)
         """
-
+        if uid + name + address + sql == '':
+            sql += ' WHERE 1=0 '    
+        else:
+            sql += ' WHERE 1=1 '     
+        if uid != '':
+            sql += ' AND id = %d '
+            params += (uid,)
+        if name != '':
+            sql += ' AND name LIKE %s '
+            params += (name,)
+        if address != '':
+            sql += ' AND address LIKE %s '
+            params += (address,)
+        if date_of_birth != '':
+            sql += ' AND date_of_birth LIKE %s '
+            params += (date_of_birth,)
     else:
         sql = f"""
         SELECT
@@ -50,11 +75,24 @@ def search(user):
             {table} AS t1
         LEFT JOIN
             person_profiles AS t2 ON t1.uid = t2.id
-        WHERE
-            t1.uid = %d OR
-            (t2.address LIKE %s AND t2.date_of_birth = %s)
         """
-    return db.query(sql, (data["uid"], data["address"], data["date_of_birth"]))
+        if uid + name + address + sql == '':
+            sql += ' WHERE 1=0 '    
+        else:
+            sql += ' WHERE 1=1 '    
+        if uid != '':
+            sql += ' AND t1.uid = %d '
+            params += (uid,)
+        if name != '':
+            sql += ' AND t1.name LIKE %s '
+            params += (name,)
+        if address != '':
+            sql += ' AND t2.address LIKE %s '
+            params += (address,)
+        if date_of_birth != '':
+            sql += ' AND t2.date_of_birth LIKE %s '
+            params += (date_of_birth,)
+    return db.query(sql, params)
 
 
 @app.route("/pull", methods=["POST"])
