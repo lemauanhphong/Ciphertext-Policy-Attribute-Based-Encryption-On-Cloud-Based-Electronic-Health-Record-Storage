@@ -57,16 +57,16 @@ def search(user):
             sql += ' WHERE 1=1 '     
         if uid != '':
             sql += ' AND id = %d '
-            params.append(uid)
+            params += (uid,)
         if name != '':
             sql += ' AND name LIKE %d '
-            params.append(name)
+            params += (name,)
         if address != '':
             sql += ' AND address LIKE %d '
-            params.append(address)
+            params += (address,)
         if date_of_birth != '':
             sql += ' AND date_of_birth LIKE %d '
-            params.append(date_of_birth)
+            params += (date_of_birth,)
     else:
         sql = f"""
         SELECT
@@ -82,16 +82,16 @@ def search(user):
             sql += ' WHERE 1=1 '    
         if uid != '':
             sql += ' AND t1.uid = %d '
-            params.append(uid)
+            params += (uid,)
         if name != '':
             sql += ' AND t1.name LIKE %d '
-            params.append(name)
+            params += (name,)
         if address != '':
             sql += ' AND t1.address LIKE %d '
-            params.append(address)
+            params += (address,)
         if date_of_birth != '':
             sql += ' AND t1.date_of_birth LIKE %d '
-            params.append(date_of_birth)
+            params += (date_of_birth,)
     return db.query(sql, params)
 
 
