@@ -2,5 +2,6 @@ Charm-Crypto==0.50
 cryptography==41.0.1
 Flask==2.2.5
 Flask-Session==0.5.0
+gunicorn==20.1.0
 mariadb==1.1.6
 PyJWT==2.7.0

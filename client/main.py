@@ -17,8 +17,8 @@ from requests import Session
 from ui.login import Ui_dlg_login
 from ui.main import Ui_main_window
 
-AUTHORITY_SERVER_URL = "http://localhost:2808/"
-CLOUD_SERVER_URL = "http://localhost:2809/"
+AUTHORITY_SERVER_URL = "https://as8742.duckdns.org/"
+CLOUD_SERVER_URL = "https://cloud8742.duckdns.org/"
 DOWNLOAD_LOCATION = "downloads"
 
 
@@ -66,7 +66,12 @@ class MainWindow(QMainWindow, Ui_main_window):
         self.hyb_abe = HybridABEnc(CPabe_BSW07(self.pairing_group), self.pairing_group)
 
         self.session = Session()
+        self.session.verify = True
+
         self.login()
+
+        # sample policy
+        self.pte_policy.setPlainText("ROLES@ADMIN or ROLES@DOCTOR")
 
     @pyqtSlot()
     def on_act_change_password_triggered(self):

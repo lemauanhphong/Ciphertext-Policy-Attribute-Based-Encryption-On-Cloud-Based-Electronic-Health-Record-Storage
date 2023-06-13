@@ -6,3 +6,5 @@ flask_session
 *.pem
 test.py
 pyproject.toml
+nginx.ec.crt
+nginx.ec.key
