@@ -6,6 +6,6 @@ flask_session
 *.pem
 test.py
 pyproject.toml
-*.crt
 *.key
+*.crt
 *.zip
