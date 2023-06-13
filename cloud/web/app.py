@@ -28,6 +28,9 @@ def search(user):
     data = request.json
 
     table = data["table"]
+    name = "%" + data["name"] + "%"
+    address = "%" + data["address"] + "%"
+    date_of_birth = "%" + data["date_of_birth"] + "%"
     if table not in TABLE_LIST:
         return "The table does not exist", 400
 
@@ -39,6 +42,7 @@ def search(user):
             {table}
         WHERE
             id = %d OR
+            name LIKE %s OR
             (address LIKE %s AND date_of_birth = %s)
         """
 
@@ -52,9 +56,10 @@ def search(user):
             person_profiles AS t2 ON t1.uid = t2.id
         WHERE
             t1.uid = %d OR
+            name LIKE %s OR
             (t2.address LIKE %s AND t2.date_of_birth = %s)
         """
-    return db.query(sql, (data["uid"], data["address"], data["date_of_birth"]))
+    return db.query(sql, (data["uid"], name, address, date_of_birth))
 
 
 @app.route("/pull", methods=["POST"])
