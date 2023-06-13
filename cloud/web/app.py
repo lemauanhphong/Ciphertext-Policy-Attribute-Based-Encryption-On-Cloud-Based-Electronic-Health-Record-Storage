@@ -6,6 +6,8 @@ from flask import Flask, request
 from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 #50 Mb
+
 enforcer = casbin.Enforcer("./abac/model.conf")
 
 TABLE_LIST = ["health_records", "person_profiles", "researches", "financials"]
@@ -27,12 +29,28 @@ def hello():
 def search(user):
     data = request.json
 
+    uid = data["uid"]
     table = data["table"]
-    name = "%" + data["name"] + "%"
-    address = "%" + data["address"] + "%"
-    date_of_birth = "%" + data["date_of_birth"] + "%"
+    if data["name"] != "":
+        name = "%" + data["name"] + "%"
+    if data["address"] != "":
+        address = "%" + data["address"] + "%"
+    if data["date_of_birth"] != "":
+        date_of_birth = "%" + data["date_of_birth"] + "%"
     if table not in TABLE_LIST:
         return "The table does not exist", 400
+
+    condition = ''
+    if uid + name + address + sql != '':
+        condition += ' WHERE 1=1 '    
+    if uid != '':
+        condition += ' AND id = %d '
+    if name != '':
+        sql += ' AND name LIKE %d '
+    if condition != '':
+        condition += ' AND address LIKE %d '
+    if date_of_birth != '':
+        condition += ' AND date_of_birth LIKE %d '
 
     if table == "person_profiles":
         sql = f"""
@@ -40,12 +58,17 @@ def search(user):
             id, name, file_name, description, last_modified
         FROM
             {table}
-        WHERE
-            id = %d OR
-            name LIKE %s OR
-            (address LIKE %s AND date_of_birth = %s)
         """
-
+        if uid + name + address + sql != '':
+            sql += ' WHERE 1=1 '    
+        if uid != '':
+            sql += ' AND id = %d '
+        if name != '':
+            sql += ' AND name LIKE %d '
+        if address != '':
+            sql += ' AND address LIKE %d '
+        if date_of_birth != '':
+            sql += ' AND date_of_birth LIKE %d '
     else:
         sql = f"""
         SELECT
@@ -54,12 +77,18 @@ def search(user):
             {table} AS t1
         LEFT JOIN
             person_profiles AS t2 ON t1.uid = t2.id
-        WHERE
-            t1.uid = %d OR
-            t1.name LIKE %s OR
-            (t2.address LIKE %s AND t2.date_of_birth = %s)
         """
-    return db.query(sql, (data["uid"], name, address, date_of_birth))
+        if uid + name + address + sql != '':
+            sql += ' WHERE 1=1 '    
+        if uid != '':
+            sql += ' AND t1.uid = %d '
+        if name != '':
+            sql += ' AND t1.name LIKE %d '
+        if address != '':
+            sql += ' AND t1.address LIKE %d '
+        if date_of_birth != '':
+            sql += ' AND t1.date_of_birth LIKE %d '
+    return db.query(sql, (uid, name, address, date_of_birth))
 
 
 @app.route("/pull", methods=["POST"])
