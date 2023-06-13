@@ -28,9 +28,6 @@ class LoginWindow(QDialog, Ui_dlg_login):
         self.setupUi(self)
         self.parent = parent
 
-        self.le_username.setText("admin")
-        self.le_password.setText("password")
-
     @pyqtSlot()
     def on_btn_login_clicked(self):
         resp = self.parent.make_request(
@@ -81,6 +78,7 @@ class MainWindow(QMainWindow, Ui_main_window):
     @pyqtSlot()
     def on_act_logout_triggered(self):
         self.token = self.public_key = self.secret_key = None
+        self.session = Session()
         self.hide()
         self.login()
 
@@ -94,6 +92,14 @@ class MainWindow(QMainWindow, Ui_main_window):
 
     @pyqtSlot(int)
     def on_cb_table_currentIndexChanged(self, index):
+        if index == 2:
+            self.le_uid.setText("")
+            self.lbl_uid.hide()
+            self.le_uid.hide()
+        else:
+            self.lbl_uid.show()
+            self.le_uid.show()
+
         if self.tabWidget.currentIndex():
             self.lbl_description.show()
             self.le_description.show()
@@ -209,9 +215,13 @@ class MainWindow(QMainWindow, Ui_main_window):
             self.popup("Please double check your access policy", "Encryption Failed")
             return
 
+        uid = ""
+        if self.cb_table.currentText() != "researches":
+            uid = int(self.le_uid.text())
+
         data = {
             "table": self.cb_table.currentText(),
-            "uid": int(self.le_uid.text()),
+            "uid": uid,
             "name": self.le_name.text(),
             "address": self.le_address.text(),
             "date_of_birth": self.le_date_of_birth.text(),
