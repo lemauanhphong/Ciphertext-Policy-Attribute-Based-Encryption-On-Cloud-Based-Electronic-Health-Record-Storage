@@ -43,6 +43,7 @@ def search(user):
     if table not in TABLE_LIST:
         return "The table does not exist", 400
 
+    params = ()
     if table == "person_profiles":
         sql = f"""
         SELECT
@@ -50,16 +51,22 @@ def search(user):
         FROM
             {table}
         """
-        if uid + name + address + sql != '':
-            sql += ' WHERE 1=1 '    
+        if uid + name + address + sql == '':
+            sql += ' WHERE 1=0 '    
+        else:
+            sql += ' WHERE 1=1 '     
         if uid != '':
             sql += ' AND id = %d '
+            params.append(uid)
         if name != '':
             sql += ' AND name LIKE %d '
+            params.append(name)
         if address != '':
             sql += ' AND address LIKE %d '
+            params.append(address)
         if date_of_birth != '':
             sql += ' AND date_of_birth LIKE %d '
+            params.append(date_of_birth)
     else:
         sql = f"""
         SELECT
@@ -69,17 +76,23 @@ def search(user):
         LEFT JOIN
             person_profiles AS t2 ON t1.uid = t2.id
         """
-        if uid + name + address + sql != '':
+        if uid + name + address + sql == '':
+            sql += ' WHERE 1=0 '    
+        else:
             sql += ' WHERE 1=1 '    
         if uid != '':
             sql += ' AND t1.uid = %d '
+            params.append(uid)
         if name != '':
             sql += ' AND t1.name LIKE %d '
+            params.append(name)
         if address != '':
             sql += ' AND t1.address LIKE %d '
+            params.append(address)
         if date_of_birth != '':
             sql += ' AND t1.date_of_birth LIKE %d '
-    return db.query(sql, (uid, name, address, date_of_birth))
+            params.append(date_of_birth)
+    return db.query(sql, params)
 
 
 @app.route("/pull", methods=["POST"])
