@@ -56,7 +56,7 @@ def search(user):
             person_profiles AS t2 ON t1.uid = t2.id
         WHERE
             t1.uid = %d OR
-            name LIKE %s OR
+            t1.name LIKE %s OR
             (t2.address LIKE %s AND t2.date_of_birth = %s)
         """
     return db.query(sql, (data["uid"], name, address, date_of_birth))
