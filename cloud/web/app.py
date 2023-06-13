@@ -87,10 +87,10 @@ def search(user):
             sql += ' AND t1.name LIKE %d '
             params += (name,)
         if address != '':
-            sql += ' AND t1.address LIKE %d '
+            sql += ' AND t2.address LIKE %d '
             params += (address,)
         if date_of_birth != '':
-            sql += ' AND t1.date_of_birth LIKE %d '
+            sql += ' AND t2.date_of_birth LIKE %d '
             params += (date_of_birth,)
     return db.query(sql, params)
 
