@@ -31,7 +31,10 @@ def search(user):
 
     uid = data["uid"]
     table = data["table"]
-    if data["name"] != "":
+    name = data["name"]
+    address = data["address"]
+    date_of_birth = data["date_of_birth"]
+    if name != "":
         name = "%" + data["name"] + "%"
     if data["address"] != "":
         address = "%" + data["address"] + "%"
@@ -39,18 +42,6 @@ def search(user):
         date_of_birth = "%" + data["date_of_birth"] + "%"
     if table not in TABLE_LIST:
         return "The table does not exist", 400
-
-    condition = ''
-    if uid + name + address + sql != '':
-        condition += ' WHERE 1=1 '    
-    if uid != '':
-        condition += ' AND id = %d '
-    if name != '':
-        sql += ' AND name LIKE %d '
-    if condition != '':
-        condition += ' AND address LIKE %d '
-    if date_of_birth != '':
-        condition += ' AND date_of_birth LIKE %d '
 
     if table == "person_profiles":
         sql = f"""
