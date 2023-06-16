@@ -10,8 +10,4 @@ WORKDIR /web
 
 RUN pip install -r requirements.txt
 
-<<<<<<< HEAD
 CMD gunicorn --bind 0.0.0.0:2809 wsgi:app
-=======
-CMD python app.py
->>>>>>> main
