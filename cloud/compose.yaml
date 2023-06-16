@@ -1,0 +1,43 @@
+services:
+  nginx:
+    image: nginx:1.23.3
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    secrets:
+      - nginx_ec_crt
+      - nginx_ec_key
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MARIADB_DATABSE: cloud
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
+    secrets:
+      - db_root_password
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb-admin ping -p$$(cat $$MARIADB_ROOT_PASSWORD_FILE)| grep 'mysqld is alive' || exit 1",
+        ]
+      interval: 2s
+      retries: 120
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  nginx_ec_crt:
+    file: ./secrets/certificate.crt
+  nginx_ec_key:
+    file: ./secrets/private.key
