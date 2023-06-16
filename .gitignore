@@ -9,3 +9,5 @@ pyproject.toml
 *.key
 *.crt
 *.zip
+*.csr
+tmp

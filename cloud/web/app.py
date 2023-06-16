@@ -67,6 +67,20 @@ def search(user):
         if date_of_birth != '':
             sql += ' AND date_of_birth LIKE %s '
             params += (date_of_birth,)
+    elif table == "researches":
+        sql = f"""
+        SELECT
+            id, name, file_name, description, last_modified
+        FROM
+            {table}
+        """
+        if name == '':
+            sql += ' WHERE 1=0 '    
+        else:
+            sql += ' WHERE 1=1 '     
+        if name != '':
+            sql += ' AND name LIKE %s '
+            params += (name,)
     else:
         sql = f"""
         SELECT
