@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.7-bullseye
 
 RUN curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash
 
@@ -10,4 +10,8 @@ WORKDIR /web
 
 RUN pip install -r requirements.txt
 
+<<<<<<< HEAD
 CMD gunicorn --bind 0.0.0.0:2809 wsgi:app
+=======
+CMD python app.py
+>>>>>>> main
