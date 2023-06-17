@@ -135,9 +135,12 @@ class MainWindow(QMainWindow, Ui_main_window):
 
     @pyqtSlot()
     def on_btn_download_clicked(self):
-        item_id = self.tb_found_items.item(self.tb_found_items.currentRow(), 0).text()
+        item_id = self.tb_found_items.item(self.tb_found_items.currentRow(), 0)
+        if item_id is None:
+            return
+
         resp = self.make_request(
-            urljoin(CLOUD_SERVER_URL, "pull"), {"table": self.cb_table.currentText(), "id": int(item_id)}
+            urljoin(CLOUD_SERVER_URL, "pull"), {"table": self.cb_table.currentText(), "id": int(item_id.text())}
         )
         if resp is None or resp == []:
             return
@@ -175,7 +178,14 @@ class MainWindow(QMainWindow, Ui_main_window):
         self.tb_found_items.clearContents()
         self.tb_found_items.setRowCount(0)
 
-        for item in resp.json():
+        try:
+            resp = resp.json()
+        except Exception:
+            print_exc()
+            self.popup("Failed to search items")
+            return
+
+        for item in resp:
             pos = self.tb_found_items.rowCount()
             self.tb_found_items.insertRow(pos)
             self.tb_found_items.setItem(pos, 0, QTableWidgetItem(str(item["id"])))
@@ -240,11 +250,13 @@ class MainWindow(QMainWindow, Ui_main_window):
             self.popup(resp.text, "Failed to upload")
 
     def login(self):
-        if LoginWindow(self).exec():
-            self.show()
-            self.get_keys_from_server()
-        else:
-            sys.exit()
+        while True:
+            if LoginWindow(self).exec():
+                if self.get_keys_from_server():
+                    self.show()
+                    break
+            else:
+                sys.exit()
 
     def make_request(self, url, data={}):
         try:
@@ -261,11 +273,17 @@ class MainWindow(QMainWindow, Ui_main_window):
         if resp is None:
             return
 
-        resp = resp.json()
+        try:
+            resp = resp.json()
+        except Exception:
+            print_exc()
+            self.popup("Failed to get keys from server")
+            return False
 
         self.session.headers["Authorization"] = "Bearer " + resp["token"]
         self.public_key = bytesToObject(resp["public_key"], self.pairing_group)
         self.secret_key = bytesToObject(resp["secret_key"], self.pairing_group)
+        return True
 
     def popup(self, message, title="Error"):
         window = QMessageBox(self)

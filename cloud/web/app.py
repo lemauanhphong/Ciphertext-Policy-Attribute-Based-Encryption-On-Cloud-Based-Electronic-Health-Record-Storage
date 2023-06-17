@@ -164,7 +164,7 @@ def get(user):
     if err:
         if table == "health_records" and isinstance(err, mariadb.IntegrityError):
             return "Please create a person profile first", 500
-        return "Something went wrong", 500
+        return str(err), 500
 
     return "Upload successful", 200
 
