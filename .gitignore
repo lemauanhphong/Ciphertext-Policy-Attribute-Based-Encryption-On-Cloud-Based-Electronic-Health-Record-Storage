@@ -11,4 +11,5 @@ pyproject.toml
 *.zip
 *.csr
 tmp
-secrets/
+secrets
+downloads

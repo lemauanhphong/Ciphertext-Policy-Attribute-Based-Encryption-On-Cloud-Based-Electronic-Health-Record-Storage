@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: nginx:1.23.3
+    build: ./nginx/
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     ports:
