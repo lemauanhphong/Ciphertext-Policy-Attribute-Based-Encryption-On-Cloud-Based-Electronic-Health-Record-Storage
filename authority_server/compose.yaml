@@ -16,11 +16,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    secrets:
-      - abe_keys
-      - jwt_key
-      - cookie_key
-      - password_hmac_key
+    devices:
+      - /dev/tpm0:/dev/tpm0
+      - /dev/tpmrm0:/dev/tpmrm0
   db:
     image: mariadb
     environment:
@@ -45,11 +43,3 @@ secrets:
     file: ./secrets/certificate.crt
   nginx_ec_key:
     file: ./secrets/private.key
-  abe_keys:
-    file: ./secrets/abe_keys.txt
-  jwt_key:
-    file: ./secrets/ed25519key.pem
-  cookie_key:
-    file: ./secrets/cookie_key.txt
-  password_hmac_key:
-    file: ./secrets/password_hmac_key.txt
