@@ -1,3 +1,5 @@
+PERSISTENT_HANDLE = "0x81008742"
+
 with open("/run/secrets/jwt_key", "r") as f:
     JWT_PRIVKEY = f.read()
 

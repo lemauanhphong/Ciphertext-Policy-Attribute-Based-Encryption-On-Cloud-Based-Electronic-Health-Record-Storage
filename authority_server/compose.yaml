@@ -16,6 +16,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    devices:
+      - /dev/tpm0:/dev/tpm0
+      - /dev/tpmrm0:/dev/tpmrm0
     secrets:
       - abe_keys
       - jwt_key
