@@ -18,11 +18,8 @@ RUN git clone https://github.com/JHUISI/charm.git && \
 
 COPY ./web /web
 WORKDIR /web
-COPY ./secrets/abe_keys.txt ./secrets
-
-COPY ./secrets/ed25519key.pem .
-COPY ./secrets/password_hmac_key.txt .
 
 RUN pip install -r requirements.txt
 
 CMD python encrypt_keys.py && gunicorn --bind 0.0.0.0:2808 wsgi:app
+

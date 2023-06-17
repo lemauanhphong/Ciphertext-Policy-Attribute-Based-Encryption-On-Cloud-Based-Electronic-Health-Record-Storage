@@ -2,20 +2,23 @@ import datetime
 import hashlib
 import hmac
 import json
+import os
 
 from flask import Flask, redirect, render_template, request, session
 from werkzeug.exceptions import BadRequest
 
-from config import COOKIE_KEY, PASSWORD_HMAC_KEY
 from database import db
 from flask_session import Session
-from utils import ABE, gen_token
+from utils import ABE, JWT_ECDSA, load_password_hmac_key
 
 abe = ABE()
+jwt = JWT_ECDSA()
+PASSWORD_HMAC_KEY = load_password_hmac_key()
+
 app = Flask(__name__)
 
 
-app.config["SECRET_KEY"] = COOKIE_KEY
+app.config["SECRET_KEY"] = os.urandom(32)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -50,7 +53,7 @@ def change_password():
         new_password = request.json["new_password"]
 
         hashed_password = hmac.new(
-            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+            PASSWORD_HMAC_KEY, msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
         ).hexdigest()
 
         user = db.query(
@@ -60,7 +63,7 @@ def change_password():
 
         if len(user) == 1:
             hashed_password = hmac.new(
-                bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(new_password, "utf-8"), digestmod=hashlib.sha256
+                PASSWORD_HMAC_KEY, msg=bytes(new_password, "utf-8"), digestmod=hashlib.sha256
             ).hexdigest()
 
             if db.update("UPDATE users SET password = ? WHERE id = ?", (hashed_password, user[0]["id"])):
@@ -84,7 +87,7 @@ def login():
         password = request.json["password"]
 
         hashed_password = hmac.new(
-            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+            PASSWORD_HMAC_KEY, msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
         ).hexdigest()
 
         user = db.query(
@@ -124,7 +127,7 @@ def register():
         user = db.query("SELECT COUNT(1) AS cnt FROM users WHERE username = %s", (username,))
 
         hashed_password = hmac.new(
-            bytes(PASSWORD_HMAC_KEY, "utf-8"), msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
+            PASSWORD_HMAC_KEY, msg=bytes(password, "utf-8"), digestmod=hashlib.sha256
         ).hexdigest()
 
         if user[0]["cnt"] != 0:
@@ -149,7 +152,7 @@ def parameters():
             abe_attributes.append(attr + "@" + val)
 
     dict_param = {
-        "token": gen_token(
+        "token": jwt.gen_token(
             {
                 "uid": session["data"]["id"],
                 "attributes": session["data"]["attributes"],
