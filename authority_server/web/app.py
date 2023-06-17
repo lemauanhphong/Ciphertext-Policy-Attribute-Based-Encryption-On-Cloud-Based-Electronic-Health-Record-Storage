@@ -3,13 +3,15 @@ import hashlib
 import hmac
 import json
 
-from config import COOKIE_KEY, PASSWORD_HMAC_KEY
-from database import db
 from flask import Flask, redirect, render_template, request, session
-from flask_session import Session
-from utils import abe, gen_token
 from werkzeug.exceptions import BadRequest
 
+from config import COOKIE_KEY, PASSWORD_HMAC_KEY
+from database import db
+from flask_session import Session
+from utils import ABE, gen_token
+
+abe = ABE()
 app = Flask(__name__)
 
 

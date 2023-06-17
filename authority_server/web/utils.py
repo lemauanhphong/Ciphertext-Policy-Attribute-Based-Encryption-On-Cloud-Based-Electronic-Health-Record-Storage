@@ -9,7 +9,9 @@ from charm.schemes.abenc.abenc_bsw07 import CPabe_BSW07
 from charm.toolbox.pairinggroup import PairingGroup
 from Crypto.Cipher import AES
 
-from config import JWT_PRIVKEY, PERSISTENT_HANDLE
+from config import JWT_PRIVKEY
+
+PERSISTENT_HANDLE = "0x81008742"
 
 
 class ABE:
@@ -24,7 +26,7 @@ class ABE:
         self.pairing_group = PairingGroup("SS512")
         self.hyb_abe = HybridABEnc(CPabe_BSW07(self.pairing_group), self.pairing_group)
 
-        with open("./secrets/abe_keys.enc", "rb") as f:
+        with open("./secrets/abe_keys.txt.enc", "rb") as f:
             key_pair = AES_GCM.decrypt(f.read())
             if key_pair is None:
                 sys.exit()
@@ -104,6 +106,3 @@ class TPM2:
 
 def gen_token(data):
     return jwt.encode(data, JWT_PRIVKEY, algorithm="EdDSA")
-
-
-abe = ABE()
