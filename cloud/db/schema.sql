@@ -13,6 +13,7 @@ CREATE TABLE
     date_of_birth DATE NOT NULL,
     description VARCHAR(255) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
+    policy VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
   );
 
@@ -26,6 +27,7 @@ CREATE TABLE
     description VARCHAR(255) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     data LONGTEXT,
+    policy VARCHAR(255) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (uid) REFERENCES person_profiles (id)
   );
@@ -39,6 +41,7 @@ CREATE TABLE
     description VARCHAR(255) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     data LONGTEXT,
+    policy VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
   );
 
@@ -52,6 +55,7 @@ CREATE TABLE
     description VARCHAR(255) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     data LONGTEXT,
+    policy VARCHAR(255) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (uid) REFERENCES person_profiles (id)
   );
