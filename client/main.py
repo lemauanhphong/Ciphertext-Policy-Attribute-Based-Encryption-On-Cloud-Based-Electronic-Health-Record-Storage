@@ -63,7 +63,7 @@ class MainWindow(QMainWindow, Ui_main_window):
         self.hyb_abe = HybridABEnc(CPabe_BSW07(self.pairing_group), self.pairing_group)
 
         self.session = Session()
-        # self.session.verify = True
+        self.session.verify = True
 
         self.login()
 
