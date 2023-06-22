@@ -26,8 +26,6 @@ services:
       - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
     secrets:
       - db_root_password
-    ports:
-      - "3306:3306"
     healthcheck:
       test:
         [
