@@ -147,13 +147,14 @@ class MainWindow(QMainWindow, Ui_main_window):
 
         try:
             resp = resp.json()[0]
-            decrypted_data = self.hyb_abe.decrypt(
-                self.public_key, self.secret_key, bytesToObject(resp["data"], self.pairing_group)
-            )
         except JSONDecodeError:
             self.popup(resp.text, "Download Failed")
             return
 
+        try:
+            decrypted_data = self.hyb_abe.decrypt(
+                self.public_key, self.secret_key, bytesToObject(resp["data"], self.pairing_group)
+            )
         except Exception:
             print_exc()
             self.popup("You may not have the necessary permissions to decrypt this file", "Decryption Failed")
@@ -184,7 +185,7 @@ class MainWindow(QMainWindow, Ui_main_window):
 
         try:
             resp = resp.json()
-        except Exception:
+        except JSONDecodeError:
             print_exc()
             self.popup("Failed to search items")
             return
@@ -280,8 +281,7 @@ class MainWindow(QMainWindow, Ui_main_window):
 
         try:
             resp = resp.json()
-        except Exception:
-            print_exc()
+        except JSONDecodeError:
             self.popup("Failed to get keys from server")
             return False
 
