@@ -15,6 +15,9 @@ if __name__ == "__main__":
         print("AES key is already persisted!")
 
     for file_name in os.listdir(SECRETS_DIR):
+        if file_name.endswith(".enc"):
+            break
+
         file_name = os.path.join(SECRETS_DIR, file_name)
         with open(file_name, "rb") as f:
             content = f.read()

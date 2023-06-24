@@ -21,6 +21,7 @@ class Database:
                 port=3306,
                 database="cloud",
             )
+            self.conn.autocommit = True
             self.cursor = self.conn.cursor(dictionary=True)
         except mariadb.Error:
             print_exc()
@@ -43,7 +44,6 @@ class Database:
                 self.cursor.execute(stmt, param)
             else:
                 self.cursor.execute(stmt)
-            self.conn.commit()
         except Exception as e:
             print_exc()
             self.conn.rollback()
@@ -56,7 +56,6 @@ class Database:
                 self.cursor.executemany(stmt, param)
             else:
                 self.cursor.executemany(stmt)
-            self.conn.commit()
             return True
         except Exception:
             print_exc()

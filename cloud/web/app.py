@@ -1,14 +1,16 @@
 import casbin
 import mariadb
 from auth_middleware import token_required
+from charm.toolbox.policytree import PolicyParser
 from database import db
 from flask import Flask, request
 from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 #50 Mb
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 Mb
 
 enforcer = casbin.Enforcer("./abac/model.conf")
+parser = PolicyParser()
 
 TABLE_LIST = ["health_records", "person_profiles", "researches", "financials"]
 
@@ -51,21 +53,21 @@ def search(user):
         FROM
             {table}
         """
-        if uid + name + address + sql == '':
-            sql += ' WHERE 1=0 '    
+        if uid + name + address + sql == "":
+            sql += " WHERE 1=0 "
         else:
-            sql += ' WHERE 1=1 '     
-        if uid != '':
-            sql += ' AND id = %d '
+            sql += " WHERE 1=1 "
+        if uid != "":
+            sql += " AND id = %d "
             params += (uid,)
-        if name != '':
-            sql += ' AND name LIKE %s '
+        if name != "":
+            sql += " AND name LIKE %s "
             params += (name,)
-        if address != '':
-            sql += ' AND address LIKE %s '
+        if address != "":
+            sql += " AND address LIKE %s "
             params += (address,)
-        if date_of_birth != '':
-            sql += ' AND date_of_birth LIKE %s '
+        if date_of_birth != "":
+            sql += " AND date_of_birth LIKE %s "
             params += (date_of_birth,)
     elif table == "researches":
         sql = f"""
@@ -74,12 +76,12 @@ def search(user):
         FROM
             {table}
         """
-        if name == '':
-            sql += ' WHERE 1=0 '    
+        if name == "":
+            sql += " WHERE 1=0 "
         else:
-            sql += ' WHERE 1=1 '     
-        if name != '':
-            sql += ' AND name LIKE %s '
+            sql += " WHERE 1=1 "
+        if name != "":
+            sql += " AND name LIKE %s "
             params += (name,)
     else:
         sql = f"""
@@ -90,21 +92,21 @@ def search(user):
         LEFT JOIN
             person_profiles AS t2 ON t1.uid = t2.id
         """
-        if uid + name + address + sql == '':
-            sql += ' WHERE 1=0 '    
+        if uid + name + address + sql == "":
+            sql += " WHERE 1=0 "
         else:
-            sql += ' WHERE 1=1 '    
-        if uid != '':
-            sql += ' AND t1.uid = %d '
+            sql += " WHERE 1=1 "
+        if uid != "":
+            sql += " AND t1.uid = %d "
             params += (uid,)
-        if name != '':
-            sql += ' AND t1.name LIKE %s '
+        if name != "":
+            sql += " AND t1.name LIKE %s "
             params += (name,)
-        if address != '':
-            sql += ' AND t2.address LIKE %s '
+        if address != "":
+            sql += " AND t2.address LIKE %s "
             params += (address,)
-        if date_of_birth != '':
-            sql += ' AND t2.date_of_birth LIKE %s '
+        if date_of_birth != "":
+            sql += " AND t2.date_of_birth LIKE %s "
             params += (date_of_birth,)
     return db.query(sql, params)
 
@@ -118,8 +120,20 @@ def pull(user):
     if table not in TABLE_LIST:
         return "The table does not exist", 400
 
-    sql = f"SELECT file_name, data FROM {table} WHERE id = %d"
-    return db.query(sql, (data["id"],))
+    policy = db.query(f"SELECT policy FROM {table} WHERE id = %d", (data["id"],))
+    if not policy:
+        return "Policy not found", 400
+
+    attrs = []
+    for attr, vals in user["attributes"].items():
+        for val in vals:
+            attrs.append(attr + "@" + val)
+
+    tree = parser.parse(policy[0]["policy"])
+    if not parser.prune(tree, attrs):
+        return "You don't have sufficient permissions", 400
+
+    return db.query(f"SELECT file_name, data FROM {table} WHERE id = %d", (data["id"],))
 
 
 @app.route("/push", methods=["POST"])
@@ -139,26 +153,43 @@ def get(user):
         return "You do not have permission to upload files", 403
 
     if table == "health_records":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["description"], data["file_name"], data["data"], data["uid"])
-    elif table == "person_profiles":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, address, date_of_birth, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, policy, uid) VALUES (?, ?, ?, ?, ?, ?, ?)"
         parameters = (
             user["uid"],
             data["name"],
             data["description"],
             data["file_name"],
             data["data"],
+            data["policy"],
+            data["uid"],
+        )
+    elif table == "person_profiles":
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, policy, address, date_of_birth, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        parameters = (
+            user["uid"],
+            data["name"],
+            data["description"],
+            data["file_name"],
+            data["data"],
+            data["policy"],
             data["address"],
             data["date_of_birth"],
             data["uid"],
         )
     elif table == "researches":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data) VALUES (?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["description"], data["file_name"], data["data"])
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, policy) VALUES (?, ?, ?, ?, ?, ?)"
+        parameters = (user["uid"], data["name"], data["description"], data["file_name"], data["data"], data["policy"])
     elif table == "financials":
-        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, uid) VALUES (?, ?, ?, ?, ?, ?)"
-        parameters = (user["uid"], data["name"], data["description"], data["file_name"], data["data"], data["uid"])
+        sql = f"INSERT INTO {table}(uploader_id, name, description, file_name, data, policy, uid) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        parameters = (
+            user["uid"],
+            data["name"],
+            data["description"],
+            data["file_name"],
+            data["data"],
+            data["policy"],
+            data["uid"],
+        )
 
     err = db.update(sql, parameters)
     if err:

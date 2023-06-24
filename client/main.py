@@ -12,7 +12,7 @@ from charm.toolbox.pairinggroup import PairingGroup
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import (QApplication, QDialog, QFileDialog, QMainWindow,
                              QMessageBox, QTableWidgetItem)
-from requests import Session
+from requests import JSONDecodeError, Session
 
 from ui.login import Ui_dlg_login
 from ui.main import Ui_main_window
@@ -145,11 +145,15 @@ class MainWindow(QMainWindow, Ui_main_window):
         if resp is None or resp == []:
             return
 
-        resp = resp.json()[0]
         try:
+            resp = resp.json()[0]
             decrypted_data = self.hyb_abe.decrypt(
                 self.public_key, self.secret_key, bytesToObject(resp["data"], self.pairing_group)
             )
+        except JSONDecodeError:
+            self.popup(resp.text, "Download Failed")
+            return
+
         except Exception:
             print_exc()
             self.popup("You may not have the necessary permissions to decrypt this file", "Decryption Failed")
@@ -238,6 +242,7 @@ class MainWindow(QMainWindow, Ui_main_window):
             "description": self.le_description.text(),
             "file_name": os.path.basename(self.le_file_name.text()),
             "data": objectToBytes(encrypted_data, self.pairing_group).decode(),
+            "policy": policy,
         }
 
         resp = self.make_request(urljoin(CLOUD_SERVER_URL, "push"), data)
@@ -265,7 +270,7 @@ class MainWindow(QMainWindow, Ui_main_window):
             return self.session.get(url)
         except Exception:
             print_exc()
-            self.popup("Please check your internet connection!", "Failed to conenct to server")
+            self.popup("Please check your internet connection!", "Failed to connect to server")
             return None
 
     def get_keys_from_server(self):
