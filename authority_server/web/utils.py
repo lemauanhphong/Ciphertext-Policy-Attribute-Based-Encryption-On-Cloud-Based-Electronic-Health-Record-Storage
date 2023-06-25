@@ -78,22 +78,7 @@ class TPM2:
             ["tpm2_create", "-Q", "-g", "sha256", "-u", "seal.pub", "-r", "seal.priv", "-i-", "-C", "prim.ctx"],
             input=secret,
         )
-        subprocess.run(
-            [
-                "tpm2_load",
-                "-Q",
-                "-C",
-                "prim.ctx",
-                "-u",
-                "seal.pub",
-                "-r",
-                "seal.priv",
-                "-n",
-                "seal.name",
-                "-c",
-                "seal.ctx",
-            ]
-        )
+        subprocess.run(["tpm2_load", "-Q", "-C", "prim.ctx", "-u", "seal.pub", "-r", "seal.priv", "-c", "seal.ctx"])
         p = subprocess.run(["tpm2_evictcontrol", "-C", "o", "-c", "seal.ctx", PERSISTENT_HANDLE], capture_output=True)
         return b"action: persisted" in p.stdout
 
